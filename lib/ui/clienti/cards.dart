@@ -311,7 +311,7 @@ class CardVisual extends StatelessWidget {
       ]);
     }
 
-    final card = ConstrainedBox(
+    final carta = ConstrainedBox(
       constraints: BoxConstraints(maxWidth: maxWidth),
       child: AspectRatio(
         aspectRatio: 1.6,
@@ -363,6 +363,13 @@ class CardVisual extends StatelessWidget {
         ),
       ),
     );
+    // Sotto i 360 px la carta (proporzioni fisse) non contiene il testo: la disegniamo a 360 px e la rimpiccioliamo
+    const minW = 360.0;
+    final card = LayoutBuilder(builder: (context, box) {
+      final w = box.maxWidth < maxWidth ? box.maxWidth : maxWidth;
+      if (!w.isFinite || w >= minW) return carta;
+      return SizedBox(width: w, child: FittedBox(fit: BoxFit.contain, alignment: Alignment.topLeft, child: SizedBox(width: minW, child: carta)));
+    });
     return angle == 0 ? card : Transform.rotate(angle: angle, child: card);
   }
 }

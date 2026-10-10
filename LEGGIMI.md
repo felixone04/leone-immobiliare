@@ -44,6 +44,12 @@ Limite da conoscere: i dati sono salvati nel profilo del browser e non sono cifr
 ## Sviluppo
 - **`sviluppo-live.bat`**: apre il sito in Chrome e lo aggiorna da solo a ogni modifica del codice.
 - Flutter è installato in `C:\Users\Utente\flutter`.
+- **Controllo automatico**: `flutter test` apre tutte le pagine del sito e tutte le sezioni dell'area riservata (desktop, tablet, telefono e telefono piccolo, con le funzioni di esempio e con tutte le funzioni attive) e segnala errori o contenuti che escono dallo spazio. Gira anche su GitHub prima di ogni pubblicazione.
+
+## Versione online
+Il sito è pubblicato su GitHub Pages: https://felixone04.github.io/leone-immobiliare/ (codice: https://github.com/felixone04/leone-immobiliare).
+A ogni `git push` sul ramo `master` GitHub controlla il codice, esegue il controllo automatico e ripubblica il sito.
+Online i dati restano nel browser di chi lo visita: ognuno vede i contenuti di esempio e l'area riservata vale solo per il proprio browser.
 
 ### Struttura del codice (`lib/`)
 ```

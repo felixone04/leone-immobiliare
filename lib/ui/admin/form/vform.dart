@@ -146,9 +146,10 @@ class FieldGrid extends StatelessWidget {
         final cells = <Widget>[];
         for (var k = 0; k < n; k++) {
           if (k > 0) cells.add(const SizedBox(width: gx));
-          cells.add(Expanded(child: k < cur.length ? _cell(cur[k]) : const SizedBox.shrink()));
+          cells.add(Expanded(child: k < cur.length ? _cell(cur[k], riga: true) : const SizedBox.shrink()));
         }
-        rows.add(IntrinsicHeight(child: Row(crossAxisAlignment: CrossAxisAlignment.stretch, children: cells)));
+        // Altezza reale dei campi (con IntrinsicHeight alcuni campi stimavano 3 px in meno e uscivano dalla riga)
+        rows.add(Row(crossAxisAlignment: CrossAxisAlignment.start, children: cells));
         cur = [];
       }
 
@@ -168,9 +169,11 @@ class FieldGrid extends StatelessWidget {
     });
   }
 
-  Widget _cell(FieldDef d) {
+  Widget _cell(FieldDef d, {bool riga = false}) {
     final w = VField(ctrl: ctrl, def: d, key: ctrl.keys[d.key]);
-    return d.type == 'bool' ? Align(alignment: Alignment.bottomLeft, child: w) : Align(alignment: Alignment.topLeft, child: w);
+    if (d.type != 'bool') return Align(alignment: Alignment.topLeft, child: w);
+    // In una riga l'interruttore resta allineato in basso con i campi accanto (etichetta + campo ≈ 68 px)
+    return riga ? ConstrainedBox(constraints: const BoxConstraints(minHeight: 68), child: Align(alignment: Alignment.bottomLeft, child: w)) : Align(alignment: Alignment.bottomLeft, child: w);
   }
 }
 

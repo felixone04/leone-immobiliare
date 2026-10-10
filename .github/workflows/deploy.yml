@@ -31,6 +31,10 @@ jobs:
 
       - run: flutter analyze
 
+      # Apre tutte le pagine del sito e dell'area riservata (desktop, tablet, telefono):
+      # se una pagina va in errore il sito non viene pubblicato.
+      - run: flutter test
+
       # Il sito sta in /<nome-repository>/, non nella radice del dominio.
       # Caratteri e motore grafico inclusi nel sito: nessuna dipendenza da CDN esterni.
       - run: flutter build web --release --no-web-resources-cdn --base-href "/${{ github.event.repository.name }}/"

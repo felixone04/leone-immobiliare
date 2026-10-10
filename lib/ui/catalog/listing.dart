@@ -342,7 +342,8 @@ class _Results extends StatelessWidget {
       ]),
       style: t.text(color: t.ink2),
     );
-    final tools = Row(mainAxisSize: MainAxisSize.min, children: [
+    // Wrap: sui telefoni più stretti (320 px) la scelta elenco/mappa va sotto l'ordinamento
+    final tools = Wrap(spacing: 10, runSpacing: 8, crossAxisAlignment: WrapCrossAlignment.center, children: [
       if (ord.length > 1)
         SizedBox(
           width: 230,
@@ -356,7 +357,6 @@ class _Results extends StatelessWidget {
           ),
         ),
       if (sch.hasGeo) ...[
-        const SizedBox(width: 10),
         Container(
           padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(color: Colors.white, border: Border.all(color: t.line2), borderRadius: BorderRadius.circular(t.controlRadius)),
@@ -409,7 +409,8 @@ class _Results extends StatelessWidget {
             const SizedBox(height: 12),
             count,
           ])
-        : Row(children: [Expanded(child: count), tools]);
+        // Wrap: su tablet la colonna dei risultati è stretta e ordinamento + vista vanno sotto al conteggio
+        : Wrap(spacing: 12, runSpacing: 10, crossAxisAlignment: WrapCrossAlignment.center, alignment: WrapAlignment.spaceBetween, children: [count, tools]);
 
     Widget content;
     if (n == 0) {

@@ -273,7 +273,8 @@ class VChip extends StatelessWidget {
             duration: const Duration(milliseconds: 120),
             child: selected ? Padding(padding: const EdgeInsets.only(right: 6), child: VIcon(icon, size: 14, color: t.onPrimary)) : const SizedBox.shrink(),
           ),
-          Text(label, style: t.text(size: small ? 13.4 : 14.1, weight: FontWeight.w600, color: selected ? t.onPrimary : t.ink, height: 1.3)),
+          // Flexible: le etichette lunghe vanno a capo invece di uscire dallo schermo (telefono)
+          Flexible(child: Text(label, style: t.text(size: small ? 13.4 : 14.1, weight: FontWeight.w600, color: selected ? t.onPrimary : t.ink, height: 1.3))),
         ]),
       ),
     );

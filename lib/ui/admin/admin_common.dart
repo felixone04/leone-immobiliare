@@ -196,7 +196,11 @@ class FormFoot extends StatelessWidget {
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.symmetric(vertical: 14),
       decoration: BoxDecoration(border: Border(top: BorderSide(color: t.line))),
-      child: Row(children: [left ?? const SizedBox.shrink(), const Spacer(), Wrap(spacing: 8, children: right)]),
+      // Wrap: su schermi stretti i pulsanti di destra vanno sotto invece di uscire dalla barra
+      child: Wrap(alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, spacing: 8, runSpacing: 10, children: [
+        left ?? const SizedBox.shrink(),
+        Wrap(spacing: 8, runSpacing: 8, children: right),
+      ]),
     );
   }
 }

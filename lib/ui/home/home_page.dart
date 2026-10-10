@@ -435,29 +435,36 @@ class PrenCta extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
+    // Su telefono l'icona va sopra il testo: affiancati (64 + 24 + almeno 200 px) uscivano dal riquadro
+    final stretto = context.vw <= 520;
+    final icona = Container(
+      width: 64,
+      height: 64,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(color: t.minimal ? const Color(0xFF111111) : t.primarySoft, borderRadius: BorderRadius.circular(t.minimal ? 0 : 18)),
+      child: VIcon(icon, size: 30, color: t.minimal ? Colors.white : t.primary),
+    );
+    final testi = Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
+      Text(title, style: t.title(size: t.h2(context))),
+      if (text.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 4), child: Text(text, style: t.text(color: t.muted))),
+    ]);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+      padding: stretto ? const EdgeInsets.all(22) : const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
       decoration: BoxDecoration(color: t.surface, border: Border.all(color: t.line), borderRadius: BorderRadius.circular(t.minimal ? 0 : t.radius + 6), boxShadow: t.shadow),
-      child: Wrap(spacing: 24, runSpacing: 20, crossAxisAlignment: WrapCrossAlignment.center, alignment: WrapAlignment.spaceBetween, children: [
-        Row(mainAxisSize: MainAxisSize.min, children: [
-          Container(
-            width: 64,
-            height: 64,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(color: t.minimal ? const Color(0xFF111111) : t.primarySoft, borderRadius: BorderRadius.circular(t.minimal ? 0 : 18)),
-            child: VIcon(icon, size: 30, color: t.minimal ? Colors.white : t.primary),
-          ),
-          const SizedBox(width: 24),
-          ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: (context.vw - 200).clamp(200.0, 640.0)),
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-              Text(title, style: t.title(size: t.h2(context))),
-              if (text.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 4), child: Text(text, style: t.text(color: t.muted))),
+      // larghezza dei testi misurata sullo spazio reale del riquadro (icona 64 + distanza 24)
+      child: LayoutBuilder(builder: (context, box) {
+        return Wrap(spacing: 24, runSpacing: 20, crossAxisAlignment: WrapCrossAlignment.center, alignment: WrapAlignment.spaceBetween, children: [
+          if (stretto)
+            Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [icona, const SizedBox(height: 16), testi])
+          else
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              icona,
+              const SizedBox(width: 24),
+              ConstrainedBox(constraints: BoxConstraints(maxWidth: (box.maxWidth - 88).clamp(200.0, 640.0)), child: testi),
             ]),
-          ),
-        ]),
-        VButton(button, iconAfter: 'arrowRight', kind: BtnKind.accent, size: BtnSize.lg, href: href),
-      ]),
+          VButton(button, iconAfter: 'arrowRight', kind: BtnKind.accent, size: BtnSize.lg, href: href),
+        ]);
+      }),
     );
   }
 }
