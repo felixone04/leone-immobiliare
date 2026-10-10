@@ -1,0 +1,862 @@
+{
+    "tipo": "immobiliare",
+    "settings": {
+        "nome": "Leone Immobiliare",
+        "slogan": "Agenzia immobiliare dal 1998",
+        "logo": "assets/logo.png",
+        "logoAltezza": 60,
+        "mostraNome": false,
+        "colorePrimario": "#0189ee",
+        "coloreAccento": "#0b0d10",
+        "telefono": "+39 02 1234 5678",
+        "whatsapp": "393331234567",
+        "email": "info@leoneimmobiliare.example",
+        "indirizzo": "Via Solferino 12, 20121 Milano (MI)",
+        "orari": "Lun–Ven 9:00–19:00\nSabato 9:30–13:00\nDomenica su appuntamento",
+        "piva": "01234567890",
+        "facebook": "https://facebook.com",
+        "instagram": "https://instagram.com",
+        "linkedin": "",
+        "sedeGeo": {
+            "lat": 45.4776,
+            "lng": 9.1872
+        },
+        "tema": "leone",
+        "tipo": "immobiliare"
+    },
+    "items": [
+        {
+            "id": "dh2dz6",
+            "evidenza": true,
+            "titolo": "Bilocale arredato vicino alla metro",
+            "rif": "MI-0420",
+            "contratto": "Affitto",
+            "tipologia": "Appartamento",
+            "prezzo": 1350,
+            "spese": 90,
+            "statoAnnuncio": "Disponibile",
+            "mq": 55,
+            "locali": 2,
+            "camere": 1,
+            "bagni": 1,
+            "piano": "3°",
+            "pianiEdificio": 7,
+            "stato": "Ottimo / Ristrutturato",
+            "anno": 1970,
+            "classeEnergetica": "C",
+            "riscaldamento": "Centralizzato",
+            "arredato": "Arredato",
+            "spazioEsterno": [
+                "Balcone"
+            ],
+            "mqEsterno": 6,
+            "parcheggio": "Nessuno",
+            "dotazioni": [
+                "Ascensore",
+                "Aria condizionata",
+                "Videocitofono",
+                "Fibra ottica"
+            ],
+            "esposizione": [
+                "Est"
+            ],
+            "indirizzo": "Corso Lodi 38",
+            "citta": "Milano",
+            "provincia": "MI",
+            "cap": "20135",
+            "zona": "Porta Romana",
+            "mostraIndirizzo": true,
+            "geo": {
+                "lat": 45.4517,
+                "lng": 9.2035
+            },
+            "descrizione": "Bilocale **completamente arredato** a 200 metri dalla fermata M3 Lodi TIBB. Soggiorno con angolo cottura, camera matrimoniale, bagno con doccia e balcone.\n\nDisponibile da subito, contratto 4+4. Ideale per professionisti.",
+            "foto": [
+                "assets/foto/photo-1522708323590-d24dbb6b0267.jpg",
+                "assets/foto/photo-1493809842364-78817add7ffb.jpg",
+                "assets/foto/photo-1502005229762-cf1b2da7c5d6.jpg"
+            ],
+            "video": "",
+            "creato": 1790636764743,
+            "modificato": 1790723164930
+        },
+        {
+            "id": "df750a",
+            "evidenza": true,
+            "titolo": "Trilocale con terrazzo panoramico",
+            "rif": "MI-0412",
+            "contratto": "Vendita",
+            "tipologia": "Appartamento",
+            "prezzo": 485000,
+            "trattabile": false,
+            "spese": 180,
+            "statoAnnuncio": "Disponibile",
+            "mq": 95,
+            "locali": 3,
+            "camere": 2,
+            "bagni": 2,
+            "piano": "5°",
+            "pianiEdificio": 6,
+            "stato": "Ottimo / Ristrutturato",
+            "anno": 1965,
+            "classeEnergetica": "B",
+            "riscaldamento": "Centralizzato",
+            "arredato": "Non arredato",
+            "spazioEsterno": [
+                "Terrazzo"
+            ],
+            "mqEsterno": 30,
+            "parcheggio": "Nessuno",
+            "dotazioni": [
+                "Ascensore",
+                "Aria condizionata",
+                "Cantina",
+                "Portineria",
+                "Fibra ottica"
+            ],
+            "esposizione": [
+                "Sud",
+                "Ovest"
+            ],
+            "indirizzo": "Via Pastrengo 14",
+            "citta": "Milano",
+            "provincia": "MI",
+            "cap": "20159",
+            "zona": "Isola",
+            "mostraIndirizzo": false,
+            "geo": {
+                "lat": 45.4869,
+                "lng": 9.1893
+            },
+            "descrizione": "In una delle zone più vivaci di Milano, a pochi passi da piazza Gae Aulenti, proponiamo un **trilocale completamente ristrutturato** al quinto piano con terrazzo di 30 m² vista skyline.\n\nL'appartamento è composto da:\n- ingresso su ampio soggiorno con cucina a vista\n- due camere matrimoniali\n- due bagni finestrati\n- cantina di pertinenza\n\nFinestre con doppio vetro, parquet in rovere e impianto di climatizzazione canalizzato.",
+            "foto": [
+                "assets/foto/photo-1502672260266-1c1ef2d93688.jpg",
+                "assets/foto/photo-1484154218962-a197022b5858.jpg",
+                "assets/foto/photo-1505691938895-1758d7feb511.jpg",
+                "assets/foto/photo-1552321554-5fefe8c9ef14.jpg",
+                "assets/foto/photo-1493809842364-78817add7ffb.jpg"
+            ],
+            "video": "",
+            "creato": 1790550364743,
+            "modificato": 1790723164930
+        },
+        {
+            "id": "dm62ou",
+            "evidenza": false,
+            "titolo": "Quadrilocale di design in CityLife",
+            "rif": "MI-0419",
+            "contratto": "Vendita",
+            "tipologia": "Appartamento",
+            "prezzo": 890000,
+            "statoAnnuncio": "Disponibile",
+            "mq": 130,
+            "locali": 4,
+            "camere": 3,
+            "bagni": 2,
+            "piano": "8° e oltre",
+            "pianiEdificio": 14,
+            "stato": "Nuovo / In costruzione",
+            "anno": 2021,
+            "classeEnergetica": "A4",
+            "riscaldamento": "Pompa di calore",
+            "arredato": "Non arredato",
+            "spazioEsterno": [
+                "Balcone",
+                "Terrazzo"
+            ],
+            "mqEsterno": 25,
+            "parcheggio": "Box singolo",
+            "dotazioni": [
+                "Ascensore",
+                "Aria condizionata",
+                "Portineria",
+                "Domotica",
+                "Videocitofono",
+                "Fibra ottica",
+                "Accesso disabili"
+            ],
+            "esposizione": [
+                "Sud",
+                "Ovest"
+            ],
+            "indirizzo": "Via Senofonte 3",
+            "citta": "Milano",
+            "provincia": "MI",
+            "cap": "20145",
+            "zona": "CityLife",
+            "mostraIndirizzo": false,
+            "geo": {
+                "lat": 45.4781,
+                "lng": 9.1558
+            },
+            "descrizione": "Quadrilocale al decimo piano in una delle residenze più esclusive di CityLife, con **vista sul parco** e sulle torri. Portineria 24 ore, palestra condominiale e box.",
+            "foto": [
+                "assets/foto/photo-1600210492486-724fe5c67fb0.jpg",
+                "assets/foto/photo-1600566753190-17f0baa2a6c3.jpg",
+                "assets/foto/photo-1505691938895-1758d7feb511.jpg"
+            ],
+            "video": "",
+            "creato": 1790463964743,
+            "modificato": 1790723164930
+        },
+        {
+            "id": "dgsvaj",
+            "evidenza": true,
+            "titolo": "Villa indipendente con piscina e parco",
+            "rif": "MB-0107",
+            "contratto": "Vendita",
+            "tipologia": "Villa",
+            "prezzo": 1150000,
+            "trattabile": true,
+            "statoAnnuncio": "Disponibile",
+            "mq": 320,
+            "locali": 7,
+            "camere": 4,
+            "bagni": 3,
+            "piano": "Su più livelli",
+            "pianiEdificio": 3,
+            "stato": "Ottimo / Ristrutturato",
+            "anno": 2004,
+            "classeEnergetica": "A2",
+            "riscaldamento": "Pompa di calore",
+            "arredato": "Non arredato",
+            "spazioEsterno": [
+                "Giardino privato",
+                "Patio"
+            ],
+            "mqEsterno": 900,
+            "parcheggio": "Box doppio",
+            "dotazioni": [
+                "Piscina",
+                "Allarme",
+                "Camino",
+                "Domotica",
+                "Pannelli solari",
+                "Aria condizionata"
+            ],
+            "esposizione": [
+                "Sud",
+                "Est",
+                "Ovest"
+            ],
+            "indirizzo": "Viale Cesare Battisti 50",
+            "citta": "Monza",
+            "provincia": "MB",
+            "cap": "20900",
+            "zona": "Parco",
+            "mostraIndirizzo": false,
+            "geo": {
+                "lat": 45.5942,
+                "lng": 9.2745
+            },
+            "descrizione": "Elegante villa indipendente a due passi dal **Parco di Monza**, immersa in un giardino privato di 900 m² con piscina riscaldata.\n\n## Piano terra\nAmpio salone con camino, sala da pranzo, cucina abitabile e bagno ospiti.\n\n## Primo piano\nTre camere, di cui la padronale con cabina armadio e bagno privato.\n\n## Piano seminterrato\nTaverna, lavanderia e box doppio.",
+            "foto": [
+                "assets/foto/photo-1613490493576-7fde63acd811.jpg",
+                "assets/foto/photo-1512917774080-9991f1c4c750.jpg",
+                "assets/foto/photo-1600607687939-ce8a6c25118c.jpg",
+                "assets/foto/photo-1600566753190-17f0baa2a6c3.jpg"
+            ],
+            "video": "",
+            "creato": 1790291164743,
+            "modificato": 1790723164930
+        },
+        {
+            "id": "dj969k",
+            "evidenza": false,
+            "titolo": "Attico con terrazzo vista lago",
+            "rif": "CO-0058",
+            "contratto": "Vendita",
+            "tipologia": "Attico",
+            "prezzo": 790000,
+            "statoAnnuncio": "In trattativa",
+            "mq": 140,
+            "locali": 4,
+            "camere": 3,
+            "bagni": 2,
+            "piano": "Ultimo piano",
+            "pianiEdificio": 5,
+            "stato": "Nuovo / In costruzione",
+            "anno": 2023,
+            "classeEnergetica": "A4",
+            "riscaldamento": "Pompa di calore",
+            "arredato": "Non arredato",
+            "spazioEsterno": [
+                "Terrazzo"
+            ],
+            "mqEsterno": 60,
+            "parcheggio": "Box singolo",
+            "dotazioni": [
+                "Ascensore",
+                "Aria condizionata",
+                "Domotica",
+                "Pannelli solari",
+                "Accesso disabili"
+            ],
+            "esposizione": [
+                "Sud",
+                "Ovest"
+            ],
+            "indirizzo": "Viale Geno 7",
+            "citta": "Como",
+            "provincia": "CO",
+            "cap": "22100",
+            "zona": "Lungolago",
+            "mostraIndirizzo": false,
+            "geo": {
+                "lat": 45.8124,
+                "lng": 9.0931
+            },
+            "descrizione": "Attico di nuova costruzione in **classe A4** con terrazzo abitabile di 60 m² e vista aperta sul primo bacino del lago.\n\nFiniture di pregio, domotica, riscaldamento a pavimento e raffrescamento.",
+            "foto": [
+                "assets/foto/photo-1560448204-e02f11c3d0e2.jpg",
+                "assets/foto/photo-1600585154340-be6161a56a0c.jpg",
+                "assets/foto/photo-1600607687939-ce8a6c25118c.jpg"
+            ],
+            "video": "",
+            "creato": 1790031964743,
+            "modificato": 1790723164930
+        },
+        {
+            "id": "didk38",
+            "evidenza": false,
+            "titolo": "Villetta a schiera con giardino",
+            "rif": "BG-0233",
+            "contratto": "Vendita",
+            "tipologia": "Villetta a schiera",
+            "prezzo": 395000,
+            "trattabile": true,
+            "statoAnnuncio": "Disponibile",
+            "mq": 160,
+            "locali": 5,
+            "camere": 3,
+            "bagni": 2,
+            "piano": "Su più livelli",
+            "pianiEdificio": 2,
+            "stato": "Buono / Abitabile",
+            "anno": 1998,
+            "classeEnergetica": "D",
+            "riscaldamento": "Autonomo",
+            "arredato": "Non arredato",
+            "spazioEsterno": [
+                "Giardino privato",
+                "Balcone"
+            ],
+            "mqEsterno": 80,
+            "parcheggio": "Box singolo",
+            "dotazioni": [
+                "Cantina",
+                "Allarme",
+                "Camino"
+            ],
+            "esposizione": [
+                "Sud"
+            ],
+            "indirizzo": "Via Longuelo 21",
+            "citta": "Bergamo",
+            "provincia": "BG",
+            "cap": "24129",
+            "zona": "Longuelo",
+            "mostraIndirizzo": false,
+            "geo": {
+                "lat": 45.7003,
+                "lng": 9.6395
+            },
+            "descrizione": "In zona residenziale e tranquilla, villetta di testa su due livelli più taverna, con **giardino privato su tre lati** e box.\n\nIdeale per famiglie: scuole, negozi e fermata autobus a pochi minuti a piedi.",
+            "foto": [
+                "assets/foto/photo-1570129477492-45c003edd2be.jpg",
+                "assets/foto/photo-1600210492486-724fe5c67fb0.jpg",
+                "assets/foto/photo-1556912173-3bb406ef7e77.jpg"
+            ],
+            "video": "",
+            "creato": 1789686364743,
+            "modificato": 1790723164930
+        },
+        {
+            "id": "dlm08g",
+            "evidenza": false,
+            "titolo": "Casa indipendente con ampio giardino",
+            "rif": "VA-0019",
+            "contratto": "Vendita",
+            "tipologia": "Casa indipendente",
+            "prezzo": 340000,
+            "trattabile": true,
+            "statoAnnuncio": "Disponibile",
+            "mq": 180,
+            "locali": 6,
+            "camere": 3,
+            "bagni": 2,
+            "piano": "Su più livelli",
+            "pianiEdificio": 2,
+            "stato": "Da ristrutturare",
+            "anno": 1978,
+            "classeEnergetica": "F",
+            "riscaldamento": "Autonomo",
+            "arredato": "Non arredato",
+            "spazioEsterno": [
+                "Giardino privato",
+                "Cortile",
+                "Veranda"
+            ],
+            "mqEsterno": 400,
+            "parcheggio": "Box doppio",
+            "dotazioni": [
+                "Cantina",
+                "Soffitta",
+                "Camino",
+                "Animali ammessi"
+            ],
+            "esposizione": [
+                "Sud",
+                "Est"
+            ],
+            "indirizzo": "Via Sacco 5",
+            "citta": "Varese",
+            "provincia": "VA",
+            "cap": "21100",
+            "zona": "Biumo",
+            "mostraIndirizzo": false,
+            "geo": {
+                "lat": 45.8233,
+                "lng": 8.8307
+            },
+            "descrizione": "Casa indipendente su due piani con **400 m² di giardino**, box doppio e ampia soffitta. Da rimodernare secondo i propri gusti: ottima opportunità per usufruire dei bonus edilizi.",
+            "foto": [
+                "assets/foto/photo-1564013799919-ab600027ffc6.jpg",
+                "assets/foto/photo-1583608205776-bfd35f0d9f83.jpg"
+            ],
+            "video": "",
+            "creato": 1789427164743,
+            "modificato": 1790723164930
+        },
+        {
+            "id": "dkn4wk",
+            "evidenza": false,
+            "titolo": "Monolocale per studenti in Città Studi",
+            "rif": "MI-0377",
+            "contratto": "Affitto",
+            "tipologia": "Monolocale",
+            "prezzo": 850,
+            "spese": 60,
+            "statoAnnuncio": "Affittato",
+            "mq": 35,
+            "locali": 1,
+            "camere": 0,
+            "bagni": 1,
+            "piano": "2°",
+            "pianiEdificio": 5,
+            "stato": "Buono / Abitabile",
+            "anno": 1960,
+            "classeEnergetica": "E",
+            "riscaldamento": "Centralizzato",
+            "arredato": "Arredato",
+            "spazioEsterno": [],
+            "parcheggio": "Nessuno",
+            "dotazioni": [
+                "Ascensore",
+                "Fibra ottica"
+            ],
+            "esposizione": [
+                "Nord"
+            ],
+            "indirizzo": "Via Pacini 20",
+            "citta": "Milano",
+            "provincia": "MI",
+            "cap": "20131",
+            "zona": "Città Studi",
+            "mostraIndirizzo": true,
+            "geo": {
+                "lat": 45.4789,
+                "lng": 9.2275
+            },
+            "descrizione": "Monolocale arredato a due passi dal Politecnico, con angolo cottura e bagno con doccia. Spese comprensive di riscaldamento.",
+            "foto": [
+                "assets/foto/photo-1545324418-cc1a3fa10c00.jpg",
+                "assets/foto/photo-1502672023488-70e25813eb80.jpg"
+            ],
+            "video": "",
+            "creato": 1788995164743,
+            "modificato": 1790723164930
+        }
+    ],
+    "pages": [
+        {
+            "id": "dafqsj",
+            "slug": "chi-siamo",
+            "titolo": "Chi siamo",
+            "tipo": "testo",
+            "menu": true,
+            "footer": true,
+            "contenuto": "## Un'agenzia di persone, prima che di case\nLeone Immobiliare è un'agenzia immobiliare indipendente con sede a Milano e uffici a Monza, Bergamo e Como.\n\nIl nostro team è formato da **12 consulenti** iscritti al ruolo degli agenti d'affari in mediazione, un architetto e una consulente del credito.\n\n## I nostri valori\n- Trasparenza su prezzi, provvigioni e tempi\n- Conoscenza profonda dei quartieri in cui lavoriamo\n- Assistenza completa, dalla valutazione al rogito",
+            "immagine": "assets/foto/photo-1600880292203-757bb62b4baf.jpg"
+        },
+        {
+            "id": "dbr57o",
+            "slug": "storia",
+            "titolo": "La nostra storia",
+            "tipo": "testo",
+            "menu": true,
+            "footer": true,
+            "contenuto": "## 1998 — Il primo ufficio\nTutto inizia in un piccolo ufficio in zona Brera, con due scrivanie e tanta passione per la città.\n\n## 2008 — La crescita\nApriamo le sedi di Monza e Bergamo e introduciamo le prime visite virtuali.\n\n## 2016 — Como e il lago\nNasce la divisione dedicata a ville e residenze sul Lago di Como.\n\n## Oggi\nOltre 1.200 compravendite concluse e un team di 15 persone, con lo stesso obiettivo di allora: farti sentire a casa."
+        },
+        {
+            "id": "dciobm",
+            "slug": "servizi",
+            "titolo": "Servizi",
+            "tipo": "testo",
+            "menu": true,
+            "footer": true,
+            "contenuto": "## Per chi vende\n- Valutazione gratuita dell'immobile\n- Servizio fotografico, planimetrie e virtual tour\n- Pubblicazione sui principali portali\n- Verifiche urbanistiche e catastali\n\n## Per chi compra\n- Ricerca personalizzata\n- Consulenza mutui con istituti convenzionati\n- Assistenza fino al rogito notarile\n\n## Per chi affitta\n- Selezione e verifica degli inquilini\n- Contratti a canone libero, concordato e transitorio"
+        },
+        {
+            "id": "ddkyf5",
+            "slug": "lavora-con-noi",
+            "titolo": "Lavora con noi",
+            "tipo": "testo",
+            "menu": true,
+            "footer": false,
+            "contenuto": "Siamo sempre alla ricerca di persone motivate che vogliano crescere nel mondo immobiliare.\n\nInvia il tuo curriculum a **lavoro@leoneimmobiliare.example** indicando la sede che preferisci."
+        },
+        {
+            "id": "dex470",
+            "slug": "contatti",
+            "titolo": "Contatti",
+            "tipo": "contatti",
+            "menu": true,
+            "footer": true,
+            "contenuto": "Passa a trovarci in agenzia oppure scrivici: ti rispondiamo entro un giorno lavorativo."
+        },
+        {
+            "id": "d1uq50",
+            "slug": "privacy",
+            "titolo": "Privacy e cookie",
+            "tipo": "privacy",
+            "menu": false,
+            "footer": true,
+            "contenuto": ""
+        }
+    ],
+    "widgets": [
+        {
+            "id": "d2kzdm",
+            "tipo": "hero",
+            "attivo": true,
+            "titolo": "Trova la casa giusta, senza stress",
+            "sottotitolo": "Da oltre 25 anni accompagniamo famiglie e investitori nella compravendita e nell'affitto di case in Lombardia.",
+            "immagine": "assets/foto/photo-1600596542815-ffad4c1539a9.jpg",
+            "ricerca": true,
+            "pulsante": "",
+            "link": ""
+        },
+        {
+            "id": "eeb6ca001a5b65f8",
+            "tipo": "prenota",
+            "attivo": true,
+            "titolo": "Prenota online",
+            "testo": "Scegli il servizio, il giorno e l'orario che preferisci: ricevi subito la conferma."
+        },
+        {
+            "id": "f109c21f6d40a000",
+            "tipo": "offerte",
+            "attivo": true,
+            "titolo": "Offerte in corso",
+            "quanti": 3
+        },
+        {
+            "id": "d3wl4i",
+            "tipo": "catalogo",
+            "attivo": true,
+            "titolo": "Immobili in evidenza",
+            "sottotitolo": "Una selezione delle nostre proposte più interessanti.",
+            "modalita": "evidenza",
+            "quanti": 3
+        },
+        {
+            "id": "d4hu5v",
+            "tipo": "servizi",
+            "attivo": true,
+            "titolo": "Perché sceglierci",
+            "sottotitolo": "Un solo interlocutore dalla prima visita al rogito.",
+            "elementi": [
+                {
+                    "icona": "chart",
+                    "titolo": "Valutazione gratuita",
+                    "testo": "Stimiamo il valore reale del tuo immobile con dati di mercato aggiornati."
+                },
+                {
+                    "icona": "key",
+                    "titolo": "Consulenza mutui",
+                    "testo": "Ti aiutiamo a trovare il finanziamento più adatto con i nostri partner."
+                },
+                {
+                    "icona": "shield",
+                    "titolo": "Verifiche e notaio",
+                    "testo": "Controlli urbanistici e catastali e assistenza fino al rogito."
+                },
+                {
+                    "icona": "image",
+                    "titolo": "Foto e virtual tour",
+                    "testo": "Servizi fotografici professionali e tour 3D per vendere prima."
+                }
+            ]
+        },
+        {
+            "id": "d5aelm",
+            "tipo": "catalogo",
+            "attivo": true,
+            "titolo": "Cerca tra tutti i nostri immobili",
+            "sottotitolo": "Filtra per prezzo, metri quadri, locali, bagni e posizione.",
+            "modalita": "completo"
+        },
+        {
+            "id": "d6bjv5",
+            "tipo": "numeri",
+            "attivo": true,
+            "titolo": "",
+            "elementi": [
+                {
+                    "valore": "25+",
+                    "etichetta": "anni di esperienza"
+                },
+                {
+                    "valore": "1.200",
+                    "etichetta": "case vendute"
+                },
+                {
+                    "valore": "98%",
+                    "etichetta": "clienti soddisfatti"
+                },
+                {
+                    "valore": "4",
+                    "etichetta": "agenzie in Lombardia"
+                }
+            ]
+        },
+        {
+            "id": "d70hzm",
+            "tipo": "mappa",
+            "attivo": true,
+            "titolo": "Dove si trovano i nostri immobili",
+            "sottotitolo": "Clicca su un prezzo per vedere l'annuncio."
+        },
+        {
+            "id": "d8urwa",
+            "tipo": "recensioni",
+            "attivo": true,
+            "titolo": "Dicono di noi",
+            "elementi": [
+                {
+                    "nome": "Giulia e Marco",
+                    "testo": "Abbiamo venduto il nostro appartamento in meno di due mesi. Professionali e sempre disponibili.",
+                    "voto": 5
+                },
+                {
+                    "nome": "Andrea R.",
+                    "testo": "Ottima consulenza per il mutuo, ci hanno seguito passo dopo passo fino al rogito.",
+                    "voto": 5
+                },
+                {
+                    "nome": "Francesca T.",
+                    "testo": "Cercavo un bilocale in affitto in zona Porta Romana: trovato in una settimana!",
+                    "voto": 4
+                }
+            ]
+        },
+        {
+            "id": "fa1339cc951fc6c9",
+            "tipo": "fedelta",
+            "attivo": true,
+            "titolo": "Tessera fedeltà",
+            "testo": "Raccogli i timbri a ogni visita e ricevi un regalo."
+        },
+        {
+            "id": "f2a208ab1bd4d2ee",
+            "tipo": "giftcard",
+            "attivo": true,
+            "titolo": "Regala un'esperienza",
+            "testo": "Scegli un importo o uno dei nostri servizi: la gift card si paga in struttura."
+        },
+        {
+            "id": "d9qx3b",
+            "tipo": "contatti",
+            "attivo": true,
+            "titolo": "Vuoi vendere o affittare casa?",
+            "testo": "Richiedi una valutazione gratuita e senza impegno: ti ricontattiamo entro 24 ore.",
+            "pulsante": "Scrivici",
+            "link": "#/p/contatti"
+        }
+    ],
+    "moduli": {
+        "prenotazioni": true,
+        "fedelta": false,
+        "pacchetti": false,
+        "offerte": true,
+        "recensioni": true
+    },
+    "prenotazioni": {
+        "conferma": "manuale",
+        "passo": 30,
+        "pausa": 15,
+        "preavviso": 24,
+        "anticipo": 30,
+        "modificaCliente": true,
+        "limiteModificaOre": 12,
+        "listaAttesa": true,
+        "orari": [
+            [],
+            [
+                [
+                    "09:30",
+                    "13:00"
+                ],
+                [
+                    "14:30",
+                    "19:00"
+                ]
+            ],
+            [
+                [
+                    "09:30",
+                    "13:00"
+                ],
+                [
+                    "14:30",
+                    "19:00"
+                ]
+            ],
+            [
+                [
+                    "09:30",
+                    "13:00"
+                ],
+                [
+                    "14:30",
+                    "19:00"
+                ]
+            ],
+            [
+                [
+                    "09:30",
+                    "13:00"
+                ],
+                [
+                    "14:30",
+                    "19:00"
+                ]
+            ],
+            [
+                [
+                    "09:30",
+                    "13:00"
+                ],
+                [
+                    "14:30",
+                    "19:00"
+                ]
+            ],
+            [
+                [
+                    "09:30",
+                    "13:00"
+                ]
+            ]
+        ],
+        "servizi": [
+            {
+                "id": "visita",
+                "nome": "Visita di un immobile",
+                "durata": 45
+            },
+            {
+                "id": "valuta",
+                "nome": "Valutazione gratuita della tua casa",
+                "durata": 60,
+                "prezzo": 0
+            },
+            {
+                "id": "mutuo",
+                "nome": "Consulenza mutuo",
+                "durata": 45,
+                "prezzo": 0
+            }
+        ],
+        "collaboratori": [
+            {
+                "id": "agente1",
+                "nome": "Laura Bianchi",
+                "ruolo": "Consulente immobiliare",
+                "attivo": true,
+                "servizi": []
+            },
+            {
+                "id": "agente2",
+                "nome": "Davide Conti",
+                "ruolo": "Consulente immobiliare",
+                "attivo": true,
+                "servizi": [
+                    "x-visita",
+                    "x-valuta"
+                ]
+            }
+        ],
+        "messaggio": "Grazie! Ti contatteremo per confermare l'appuntamento."
+    },
+    "giftcard": {
+        "attiva": false,
+        "proposte": []
+    },
+    "fedelta": null,
+    "pacchetti": null,
+    "offerte": {
+        "offerte": [
+            {
+                "id": "valutazione",
+                "titolo": "Valutazione + servizio fotografico gratis",
+                "sconto": "Omaggio",
+                "attiva": true,
+                "dal": "2026-09-24",
+                "al": "2026-10-19",
+                "countdown": true,
+                "descrizione": "Affidaci la vendita della tua casa entro fine mese: servizio fotografico professionale e virtual tour inclusi.",
+                "personale": true,
+                "limite": 10
+            }
+        ]
+    },
+    "recensioniCfg": {
+        "approvazione": "manuale",
+        "aperte": true,
+        "googleUrl": ""
+    },
+    "recensioni": [
+        {
+            "id": "6b35c7cf2908c5db",
+            "voto": 5,
+            "stato": "pubblicata",
+            "creato": 1790463964930,
+            "nome": "Giulia e Marco",
+            "testo": "Abbiamo venduto il nostro appartamento in meno di due mesi. Professionali e sempre disponibili.",
+            "risposta": "Grazie Giulia e Marco, è stato un piacere accompagnarvi!",
+            "verificata": true
+        },
+        {
+            "id": "71ffa0de72d10350",
+            "voto": 5,
+            "stato": "pubblicata",
+            "creato": 1790204764930,
+            "nome": "Andrea R.",
+            "testo": "Ottima consulenza per il mutuo, ci hanno seguito passo dopo passo fino al rogito.",
+            "risposta": "",
+            "verificata": false
+        },
+        {
+            "id": "cfa2d92c9b1c98cc",
+            "voto": 4,
+            "stato": "pubblicata",
+            "creato": 1789945564930,
+            "nome": "Francesca T.",
+            "testo": "Cercavo un bilocale in affitto in zona Porta Romana: trovato in una settimana!",
+            "risposta": "",
+            "verificata": false
+        }
+    ]
+}
