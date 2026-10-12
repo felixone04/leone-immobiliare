@@ -13,15 +13,16 @@ import '../inputs.dart';
 import '../kit.dart';
 import '../shell.dart';
 import 'sezioni/backup.dart';
-import 'sezioni/cassa.dart';
 import 'sezioni/catalogo.dart';
+import 'sezioni/clienti_admin.dart';
 import 'sezioni/dash.dart';
-import 'sezioni/giftcard_admin.dart';
 import 'sezioni/impostazioni.dart';
 import 'sezioni/messaggi.dart';
-import 'sezioni/moduli_clienti.dart';
 import 'sezioni/ordinabili.dart';
+import 'sezioni/posta_admin.dart';
 import 'sezioni/prenotazioni_admin.dart';
+import 'sezioni/recensioni_admin.dart';
+import 'sezioni/statistiche_admin.dart';
 
 class AdminPage extends StatelessWidget {
   final List<String> parts;
@@ -34,6 +35,8 @@ class AdminPage extends StatelessWidget {
     if (!s.auth.configurato) return const _Accesso(primo: true);
     if (!s.auth.isAdmin) return const _Accesso(primo: false);
     s.auth.tocca();
+    // senza server i promemoria delle visite di domani si preparano quando l'agenzia apre l'area riservata
+    if (s.modulo('prenotazioni')) WidgetsBinding.instance.addPostFrameCallback((_) => s.repo.promemoriaVisite());
     return _AdminShell(tab: parts.isEmpty ? 'panoramica' : parts[0], rest: parts.length > 1 ? parts.sublist(1) : const [], query: query);
   }
 }
@@ -83,7 +86,7 @@ class _AccessoState extends State<_Accesso> {
   Widget build(BuildContext context) {
     final t = context.t;
     final logo = safeSrc(App.of(context).settings['logo']);
-    final marchio = t.leone && logo.isNotEmpty;
+    final marchio = logo.isNotEmpty;
     return PageScroll(footer: false, children: [
       Contained(
         child: Padding(
@@ -171,20 +174,16 @@ class _AdminShell extends StatelessWidget {
     final t = context.t;
     final sch = s.repo.schema;
     final pren = s.modulo('prenotazioni');
-    final cassa = pren || s.modulo('fedelta') || s.modulo('pacchetti') || s.modulo('offerte');
     final cnt = s.repo.contatori();
     final sezioni = <(String, List<(String, String, String, int)>)>[
-      ('Sito', [('panoramica', 'grid', 'Panoramica', 0), ('catalogo', sch.icona, sch.plurale, 0), ('widget', 'layers', 'Home e widget', 0), ('pagine', 'file', 'Pagine e menu', 0)]),
+      ('Sito', [('panoramica', 'grid', 'Panoramica', 0), ('catalogo', sch.icona, sch.plurale, 0), ('statistiche', 'chart', 'Statistiche', 0), ('widget', 'layers', 'Home e widget', 0), ('pagine', 'file', 'Pagine e menu', 0)]),
       (
         'Clienti',
         [
           ('messaggi', 'mail', 'Messaggi', cnt['messaggi'] ?? 0),
-          if (pren) ('prenotazioni', 'calendar', 'Prenotazioni', cnt['prenotazioni'] ?? 0),
-          if (cassa) ('cassa', 'search', 'Cassa', 0),
-          if (pren) ('giftcard', 'gift', 'Gift card', 0),
-          if (s.modulo('fedelta')) ('fedelta', 'star', 'Tessera fedeltà', 0),
-          if (s.modulo('pacchetti')) ('pacchetti', 'layers', 'Pacchetti', 0),
-          if (s.modulo('offerte')) ('offerte', 'tag', 'Offerte', 0),
+          ('posta', 'send', 'Email', cnt['posta'] ?? 0),
+          ('clienti', 'users', 'Clienti', 0),
+          if (pren) ('prenotazioni', 'calendar', 'Visite e agenda', cnt['prenotazioni'] ?? 0),
           if (s.modulo('recensioni')) ('recensioni', 'heart', 'Recensioni', cnt['recensioni'] ?? 0),
         ]
       ),
@@ -192,11 +191,11 @@ class _AdminShell extends StatelessWidget {
     ];
     final narrow = context.vw <= 900;
     // Tema Leone: menu laterale nero con la voce attiva azzurra, come il piè di pagina del sito
-    final scuro = t.leone && !narrow;
+    final scuro = !narrow;
     const chiaro = Color(0xFFC5CAD1), spento = Color(0xFF8B929B);
-    final rItem = BorderRadius.circular(t.leone ? 8 : 10);
-    Color fgVoce(bool active, bool h) => active ? (t.leone ? t.onPrimary : t.primary) : (scuro ? (h ? Colors.white : chiaro) : (h ? t.ink : t.ink2));
-    Color? bgVoce(bool active, bool h) => active ? (t.leone ? t.primary : t.primarySoft) : (h ? (scuro ? Colors.white.withValues(alpha: .08) : t.bg) : null);
+    final rItem = BorderRadius.circular(8);
+    Color fgVoce(bool active, bool h) => active ? t.onPrimary : (scuro ? (h ? Colors.white : chiaro) : (h ? t.ink : t.ink2));
+    Color? bgVoce(bool active, bool h) => active ? t.primary : (h ? (scuro ? Colors.white.withValues(alpha: .08) : t.bg) : null);
 
     Widget navItem(String k, String ic, String l, int n) {
       final active = k == tab;
@@ -280,14 +279,14 @@ class _AdminShell extends StatelessWidget {
             child: Row(children: [
               VIcon('lock', size: 14, color: scuro ? t.primary : t.muted),
               const SizedBox(width: 8),
-              Text('AREA RISERVATA', style: t.caps(size: 12, weight: FontWeight.w800, spacing: .1, color: scuro ? Colors.white : null)),
+              Text('AREA RISERVATA', style: t.caps(size: 12, color: scuro ? Colors.white : null)),
             ]),
           ),
           Expanded(
             child: SingleChildScrollView(
               child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                 for (final (titolo, voci) in sezioni) ...[
-                  Padding(padding: const EdgeInsets.fromLTRB(12, 14, 12, 4), child: Text(titolo.toUpperCase(), style: t.caps(size: 10.9, weight: FontWeight.w800, spacing: .12, color: scuro ? spento : null))),
+                  Padding(padding: const EdgeInsets.fromLTRB(12, 14, 12, 4), child: Text(titolo.toUpperCase(), style: t.caps(size: 10.9, color: scuro ? spento : null))),
                   for (final (k, ic, l, n) in voci) Padding(padding: const EdgeInsets.only(bottom: 2), child: navItem(k, ic, l, n)),
                 ],
               ]),
@@ -329,12 +328,10 @@ class _AdminShell extends StatelessWidget {
       'backup' => BackupAdmin(key: key),
       'messaggi' => MessaggiAdmin(key: key),
       'prenotazioni' => PrenotazioniAdmin(key: key, rest: rest, query: query),
-      'cassa' => CassaAdmin(key: key),
-      'giftcard' => GiftcardAdmin(key: key, rest: rest),
-      'fedelta' => FedeltaAdmin(key: key, rest: rest),
-      'pacchetti' => PacchettiAdmin(key: key, rest: rest),
-      'offerte' => OfferteAdmin(key: key, rest: rest),
       'recensioni' => RecensioniAdmin(key: key, rest: rest),
+      'clienti' => ClientiAdmin(key: key, rest: rest),
+      'posta' => PostaAdmin(key: key, rest: rest, query: query),
+      'statistiche' => StatisticheAdmin(key: key),
       _ => DashAdmin(key: key),
     };
   }

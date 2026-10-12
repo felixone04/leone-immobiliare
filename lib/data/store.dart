@@ -16,6 +16,7 @@ class LocalStore {
 
   Future<Object?> get(String key) => kv.record(key).get(db);
   Future<void> set(String key, Object? value) => kv.record(key).put(db, value);
+  Future<void> remove(String key) => kv.record(key).delete(db);
 
   Future<List<Map<String, dynamic>>> all(String store) async {
     final recs = await coll(store).find(db);

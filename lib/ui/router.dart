@@ -12,11 +12,7 @@ import 'booking/gestisci_page.dart';
 import 'booking/prenota_page.dart';
 import 'catalog/catalog_page.dart';
 import 'catalog/detail_page.dart';
-import 'clienti/carta_page.dart';
-import 'clienti/fedelta_page.dart';
-import 'clienti/giftcard_page.dart';
-import 'clienti/offerte_page.dart';
-import 'clienti/pacchetti_page.dart';
+import 'clienti/account.dart';
 import 'clienti/recensioni_page.dart';
 import 'home/home_page.dart';
 import 'pages/info_page.dart';
@@ -46,16 +42,11 @@ GoRouter buildRouter(AppState state) {
           r('/catalogo', (st) => CatalogPage(query: st.uri.queryParameters), (_) => state.repo.schema.plurale),
           r('/scheda/:id', (st) => DetailPage(id: p(st, 'id')), (st) => str(state.repo.item(p(st, 'id'))?['titolo'] ?? 'Non trovato')),
           r('/p/:slug', (st) => InfoPage(slug: p(st, 'slug')), (st) => str(state.repo.pages.where((x) => x['slug'] == p(st, 'slug')).firstOrNull?['titolo'] ?? 'Pagina non trovata')),
-          r('/prenota', (st) => PrenotaPage(servizio: q(st, 'servizio')), (_) => 'Prenota online'),
+          r('/prenota', (st) => PrenotaPage(servizio: q(st, 'servizio'), immobile: q(st, 'immobile')), (_) => 'Prenota una visita'),
           r('/mia-prenotazione/:id', (st) => GestisciPage(id: p(st, 'id')), (_) => 'La tua prenotazione'),
-          r('/giftcard', (st) => const GiftcardPage(), (_) => 'Gift card'),
-          r('/giftcard/:codice', (st) => GiftcardPage(codice: p(st, 'codice'), nuova: q(st, 'nuova') == '1'), (_) => 'Gift card'),
-          r('/fedelta', (st) => const FedeltaPage(), (_) => 'Tessera fedeltà'),
-          r('/fedelta/:codice', (st) => CartaPage(codice: p(st, 'codice')), (_) => 'Tessera fedeltà'),
-          r('/pacchetti', (st) => const PacchettiPage(), (_) => 'Pacchetti'),
-          r('/offerte', (st) => const OffertePage(), (_) => 'Offerte'),
           r('/recensioni', (st) => RecensioniPage(pren: q(st, 'pren')), (_) => 'Recensioni'),
-          r('/carta/:codice', (st) => CartaPage(codice: p(st, 'codice'), nuova: q(st, 'nuova') == '1'), (_) => 'La tua carta'),
+          r('/account', (st) => const AccountPage(), (_) => 'Il mio account'),
+          r('/account/:tab', (st) => AccountPage(tab: p(st, 'tab')), (_) => 'Il mio account'),
           r('/admin', (st) => AdminPage(parts: const [], query: st.uri.queryParameters), (_) => 'Area riservata'),
           r('/admin/:tab', (st) => AdminPage(parts: [p(st, 'tab')], query: st.uri.queryParameters), (_) => 'Area riservata'),
           r('/admin/:tab/:sub', (st) => AdminPage(parts: [p(st, 'tab'), p(st, 'sub')], query: st.uri.queryParameters), (_) => 'Area riservata'),

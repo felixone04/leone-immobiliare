@@ -7,6 +7,7 @@ import '../../../core/theme.dart';
 import '../../../core/util.dart';
 import '../../../data/repository.dart';
 import '../../../state/app_state.dart';
+import '../../catalog/item_card.dart';
 import '../../dialogs.dart';
 import '../../forms_public.dart';
 import '../../inputs.dart';
@@ -51,29 +52,26 @@ class _MessaggiAdminState extends State<MessaggiAdmin> {
             padding: const EdgeInsets.only(bottom: 8),
             child: Hover(
               onTap: () => _apri(context, m),
+              // bordo uniforme con angoli arrotondati; i messaggi nuovi hanno una striscia arancione a sinistra
               builder: (_, h) => Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: t.surface,
-                  border: Border(
-                    left: BorderSide(color: m['stato'] == 'nuova' ? VTheme.warn : (h ? t.primary : t.line), width: m['stato'] == 'nuova' ? 4 : 1),
-                    top: BorderSide(color: h ? t.primary : t.line),
-                    right: BorderSide(color: h ? t.primary : t.line),
-                    bottom: BorderSide(color: h ? t.primary : t.line),
-                  ),
-                  borderRadius: t.rSm,
-                ),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Row(children: [
-                    Text(str(m['nome']), style: t.text(weight: FontWeight.w700)),
-                    const SizedBox(width: 10),
-                    statoPill(kStatiMsg, str(m['stato'])),
-                    const Spacer(),
-                    Text(quando(m['creato']), style: t.text(size: 13.1, color: t.muted)),
+                decoration: BoxDecoration(color: t.surface, border: Border.all(color: h ? t.primary : t.line), borderRadius: t.rSm),
+                clipBehavior: Clip.antiAlias,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(border: Border(left: BorderSide(color: m['stato'] == 'nuova' ? VTheme.warn : Colors.transparent, width: 4))),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Row(children: [
+                      Flexible(child: Text(str(m['nome']), overflow: TextOverflow.ellipsis, style: t.text(weight: FontWeight.w700))),
+                      const SizedBox(width: 10),
+                      statoPill(kStatiMsg, str(m['stato'])),
+                      const Spacer(),
+                      Text(quando(m['creato']), style: t.text(size: 13.1, color: t.muted)),
+                    ]),
+                    if (str(m['oggetto']).isNotEmpty) Text(str(m['oggetto']), style: t.text(size: 14.4, weight: FontWeight.w600)),
+                    if (s.repo.item(str(m['immobile'])) case final i?) Text('Immobile: ${i['titolo']}', style: t.text(size: 13.6, weight: FontWeight.w600, color: t.primary)),
+                    Text(str(m['messaggio']), maxLines: 2, overflow: TextOverflow.ellipsis, style: t.text(size: 14.4, color: t.muted)),
                   ]),
-                  if (str(m['oggetto']).isNotEmpty) Text(str(m['oggetto']), style: t.text(size: 14.4, weight: FontWeight.w600)),
-                  Text(str(m['messaggio']), maxLines: 2, overflow: TextOverflow.ellipsis, style: t.text(size: 14.4, color: t.muted)),
-                ]),
+                ),
               ),
             ),
           ),
@@ -89,6 +87,7 @@ class _MessaggiAdminState extends State<MessaggiAdmin> {
       final t = ctx.t;
       return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Riep([('Ricevuto', quando(m['creato'])), ('Email', str(m['email'])), ('Telefono', str(m['telefono'])), ('Oggetto', str(m['oggetto']))]),
+        if (s.repo.item(str(m['immobile'])) case final i?) Padding(padding: const EdgeInsets.only(top: 12), child: ItemRow(i, href: '#/admin/catalogo/${i['id']}', nota: 'Apri la scheda nel gestionale')),
         Container(
           margin: const EdgeInsets.symmetric(vertical: 14),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

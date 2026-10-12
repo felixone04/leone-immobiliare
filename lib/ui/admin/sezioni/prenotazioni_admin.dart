@@ -1,4 +1,4 @@
-/// Prenotazioni: agenda del giorno, prossimi appuntamenti, lista d'attesa, impostazioni.
+/// Visite e appuntamenti: agenda del giorno per agente, prossimi appuntamenti, impostazioni.
 library;
 
 import 'package:flutter/material.dart';
@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/theme.dart';
 import '../../../core/util.dart';
+import '../../../data/abbinamento.dart';
 import '../../../data/preset.dart';
 import '../../../data/repository.dart';
 import '../../../state/app_state.dart';
@@ -46,10 +47,9 @@ class PrenotazioniAdmin extends StatelessWidget {
       AdminHead('Prenotazioni', sub: 'Appuntamenti prenotati dal sito o inseriti da te.', actions: [
         VButton('Nuova prenotazione', icon: 'plus', kind: BtnKind.primary, onPressed: () => nuovaPrenotazione(context, data)),
       ]),
-      SubTabs(base: 'prenotazioni', current: vista, tabs: const [('agenda', 'Agenda del giorno'), ('lista', 'Prossimi appuntamenti'), ('attesa', "Lista d'attesa"), ('impostazioni', 'Orari, collaboratori e servizi')]),
+      SubTabs(base: 'prenotazioni', current: vista, tabs: const [('agenda', 'Agenda del giorno'), ('lista', 'Prossimi appuntamenti'), ('impostazioni', 'Orari, agenti e servizi')]),
       switch (vista) {
         'lista' => const _Lista(),
-        'attesa' => const _Attesa(),
         'impostazioni' => const _Impostazioni(),
         _ => _Agenda(data: data),
       },
@@ -127,19 +127,25 @@ class _Agenda extends StatelessWidget {
           opacity: annullata ? .55 : 1,
           child: Hover(
             onTap: () => dettaglioPrenotazione(context, p),
+            // striscia colorata a sinistra: bordo non uniforme, quindi gli angoli si arrotondano ritagliando
             builder: (_, hv) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(color: bg, border: Border(left: BorderSide(color: bd, width: 4)), borderRadius: BorderRadius.circular(8), boxShadow: hv ? t.shadow : null),
-              clipBehavior: Clip.hardEdge,
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text.rich(
-                  TextSpan(children: [TextSpan(text: '${p['ora']}–${p['fine']} ', style: const TextStyle(fontWeight: FontWeight.w700)), TextSpan(text: str(p['nome']))]),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: t.text(size: 12.8, height: 1.25).copyWith(decoration: annullata ? TextDecoration.lineThrough : null),
+              decoration: BoxDecoration(borderRadius: BorderRadius.circular(8), boxShadow: hv ? t.shadow : null),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(color: bg, border: Border(left: BorderSide(color: bd, width: 4))),
+                  child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    Text.rich(
+                      TextSpan(children: [TextSpan(text: '${p['ora']}–${p['fine']} ', style: const TextStyle(fontWeight: FontWeight.w700)), TextSpan(text: str(p['nome']))]),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: t.text(size: 12.8, height: 1.25).copyWith(decoration: annullata ? TextDecoration.lineThrough : null),
+                    ),
+                    Text(str(p['immobile']).isNotEmpty ? str(p['immobile']) : str(p['servizio']), maxLines: 1, overflow: TextOverflow.ellipsis, style: t.text(size: 12.2, color: t.muted, height: 1.25)),
+                  ]),
                 ),
-                Text(str(p['servizio']), maxLines: 1, overflow: TextOverflow.ellipsis, style: t.text(size: 12.2, color: t.muted, height: 1.25)),
-              ]),
+              ),
             ),
           ),
         ),
@@ -268,13 +274,14 @@ class _Lista extends StatefulWidget {
 }
 
 class _ListaState extends State<_Lista> {
-  var _f = '', _g = 30;
+  var _f = '', _g = 30, _agente = '';
 
   @override
   Widget build(BuildContext context) {
     final s = App.of(context);
     final t = context.t;
-    final arr = s.repo.prenElenco(oggi(), addDays(oggi(), _g)).where((p) => _f.isEmpty || p['stato'] == _f).toList();
+    final agenti = jsonList(s.repo.prenConfig()['collaboratori']);
+    final arr = s.repo.prenElenco(oggi(), addDays(oggi(), _g)).where((p) => (_f.isEmpty || p['stato'] == _f) && (_agente.isEmpty || p['collaboratore_id'] == _agente)).toList();
     final perGiorno = <String, List<Json>>{};
     for (final p in arr) {
       (perGiorno[str(p['data'])] ??= []).add(p);
@@ -286,6 +293,10 @@ class _ListaState extends State<_Lista> {
         Text('nei prossimi', style: t.text()),
         SizedBox(width: 90, child: VSelect<int>(value: _g, dense: true, items: const [(7, '7'), (30, '30'), (90, '90')], onChanged: (v) => setState(() => _g = v ?? 30))),
         Text('giorni', style: t.text()),
+        if (agenti.isNotEmpty) ...[
+          Text('agente', style: t.text()),
+          SizedBox(width: 200, child: VSelect<String>(value: _agente, dense: true, items: [('', 'tutti'), for (final a in agenti) (str(a['id']), str(a['nome']))], onChanged: (v) => setState(() => _agente = v ?? ''))),
+        ],
       ]),
       const Gap(16),
       if (arr.isEmpty)
@@ -297,7 +308,7 @@ class _ListaState extends State<_Lista> {
             for (final p in e.value)
               [
                 Text.rich(TextSpan(children: [TextSpan(text: str(p['ora']), style: const TextStyle(fontWeight: FontWeight.w700)), TextSpan(text: '–${p['fine']}')]), style: t.text(size: 14.9)),
-                Cell2(str(p['nome']), sub: '${p['servizio']}${str(p['collaboratore']).isNotEmpty ? ' · con ${p['collaboratore']}' : ''}', onTap: () => dettaglioPrenotazione(context, p)),
+                Cell2(str(p['nome']), sub: [str(p['servizio']), str(p['immobile']), if (str(p['collaboratore']).isNotEmpty) 'con ${p['collaboratore']}'].where((x) => x.isNotEmpty).join(' · '), onTap: () => dettaglioPrenotazione(context, p)),
                 str(p['telefono']).isNotEmpty ? TextLink(str(p['telefono']), 'tel:${telHref(str(p['telefono']))}', style: t.text(size: 14.9, color: t.primary)) : const SizedBox.shrink(),
                 statoPill(kStatiPrenAdmin, str(p['stato'])),
               ],
@@ -312,9 +323,9 @@ class _ListaState extends State<_Lista> {
 Future<void> dettaglioPrenotazione(BuildContext context, Json p) {
   final s = App.read(context);
   final set = s.settings;
-  final linkCliente = fullLink('/mia-prenotazione/${p['id']}');
+  final linkCliente = s.repo.linkSito('/mia-prenotazione/${p['id']}');
   final msg = 'Buongiorno ${p['nome']}, le confermiamo l\'appuntamento per ${p['servizio']} ${fmtDate(str(p['data']))} alle ${p['ora']}. Per rivederlo, spostarlo o annullarlo: $linkCliente — ${set['nome']}';
-  final linkRec = fullLink('/recensioni?pren=${p['id']}');
+  final linkRec = s.repo.linkSito('/recensioni?pren=${p['id']}');
   final msgRec = 'Buongiorno ${str(p['nome']).split(' ').first}, grazie per essere venuto da noi! Ci lasci un parere? Bastano 30 secondi: $linkRec — ${set['nome']}';
   final puoRec = s.modulo('recensioni') && str(p['data']).compareTo(oggi()) <= 0 && !['annullata', 'assente'].contains(p['stato']);
   final tel = str(p['telefono']);
@@ -332,7 +343,8 @@ Future<void> dettaglioPrenotazione(BuildContext context, Json p) {
       Riep([
         ('Quando', '${fmtDate(str(p['data']))}, ${p['ora']}–${p['fine']}'),
         ('Servizio', '${p['servizio']}${p['durata'] != null ? ' (${p['durata']} min)' : ''}'),
-        ('Con', str(p['collaboratore'])),
+        ('Immobile', str(p['immobile'])),
+        ('Agente', str(p['collaboratore'])),
         ('Cliente', Text(str(p['nome']), style: const TextStyle(fontWeight: FontWeight.w700))),
         (
           'Telefono',
@@ -402,7 +414,7 @@ class _NuovaPren extends StatefulWidget {
 
 class _NuovaPrenState extends State<_NuovaPren> {
   late String servizio = str(widget.servizi.first['id']);
-  String coll = '', ora = '', statoP = 'confermata', oraManuale = '';
+  String coll = '', ora = '', statoP = 'confermata', oraManuale = '', immobile = '';
   late String data = widget.data;
   var forza = false;
   final nome = TextEditingController(), tel = TextEditingController(), email = TextEditingController(), note = TextEditingController();
@@ -420,10 +432,14 @@ class _NuovaPrenState extends State<_NuovaPren> {
         servizio = v ?? servizio;
         ora = '';
       }))),
+      if (norm(sv['nome']).contains('visita')) ...[
+        const Gap(12),
+        FieldLabel('Immobile da visitare', child: VSelect<String>(value: immobile, items: [('', 'Da definire'), for (final i in repo.items.where(immobileDisponibile)) (i['id'] as String, str(i['titolo']))], onChanged: (v) => setState(() => immobile = v ?? ''))),
+      ],
       const Gap(12),
       TwoCols(
         colls.isNotEmpty
-            ? FieldLabel('Collaboratore', child: VSelect<String>(value: coll, items: [('', 'Assegna automaticamente'), for (final c in colls) (str(c['id']), str(c['nome']))], onChanged: (v) => setState(() {
+            ? FieldLabel('Agente', child: VSelect<String>(value: coll, items: [('', 'Assegna automaticamente'), for (final c in colls) (str(c['id']), str(c['nome']))], onChanged: (v) => setState(() {
                 coll = v ?? '';
                 ora = '';
               })))
@@ -461,7 +477,7 @@ class _NuovaPrenState extends State<_NuovaPren> {
         }
         try {
           await repo.prenCrea({
-            'servizio': servizio, 'collaboratore': coll, 'data': data, 'ora': o, 'forza': forza, 'stato': statoP,
+            'servizio': servizio, 'collaboratore': coll, 'data': data, 'ora': o, 'forza': forza, 'stato': statoP, 'immobile': immobile,
             'nome': nome.text, 'telefono': tel.text, 'email': email.text, 'note': note.text,
           }, admin: true);
           if (!context.mounted) return;
@@ -472,86 +488,6 @@ class _NuovaPrenState extends State<_NuovaPren> {
           setState(() => err = e.message);
         }
       }),
-    ]);
-  }
-}
-
-/* ---------------- Lista d'attesa ---------------- */
-
-const kStatiAtt = {
-  'posto_libero': ('Si è liberato un posto!', 'ok'),
-  'in_attesa': ('In attesa', 'warn'),
-  'avvisato': ('Avvisato', 'muted'),
-  'prenotato': ('Ha prenotato', 'ok'),
-  'chiusa': ('Chiusa', 'muted'),
-  'scaduta': ('Scaduta', 'muted'),
-};
-
-class _Attesa extends StatelessWidget {
-  const _Attesa();
-  @override
-  Widget build(BuildContext context) {
-    final s = App.of(context);
-    final t = context.t;
-    final cfg = s.repo.prenConfig();
-    final attesa = s.repo.attElenco();
-    final attivi = attesa.where((a) => ['posto_libero', 'in_attesa'].contains(a['stato'])).toList();
-    final altri = attesa.where((a) => !['posto_libero', 'in_attesa'].contains(a['stato'])).toList();
-    final altriUltimi = altri.length > 30 ? altri.sublist(altri.length - 30) : altri;
-    String collNome(String id) => str(jsonList(cfg['collaboratori']).where((c) => c['id'] == id).firstOrNull?['nome']);
-    List<Widget> riga(Json a) {
-      final ore = strList(a['orariLiberi']).join(', ');
-      final msg =
-          'Buongiorno ${str(a['nome']).split(' ').first}, si è liberato un posto per ${a['servizio']} ${fmtDate(str(a['data']))}${ore.isNotEmpty ? ' (orari: $ore)' : ''}. Prenota qui: ${fullLink('/prenota?servizio=${a['servizio_id']}')} oppure rispondi a questo messaggio. ${s.settings['nome']}';
-      final tel = str(a['telefono']);
-      Future<void> avvisato() => s.repo.attStato(a['id'], 'avvisato');
-      return [
-        Cell2(fmtDate(str(a['data']), 'EEE d MMM'), sub: const {'qualsiasi': 'qualsiasi orario', 'mattina': 'mattina', 'pomeriggio': 'pomeriggio', 'sera': 'sera'}[a['fascia']] ?? ''),
-        Cell2(str(a['nome']), sub: '${a['servizio']}${str(a['collaboratore_id']).isNotEmpty ? ' · ${collNome(str(a['collaboratore_id']))}' : ''}${str(a['note']).isNotEmpty ? ' · ${a['note']}' : ''}'),
-        Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
-          statoPill(kStatiAtt, str(a['stato'])),
-          if (ore.isNotEmpty && a['stato'] == 'posto_libero') Text('Liberi: $ore', style: t.text(size: 13.1, color: t.muted)),
-        ]),
-        Wrap(spacing: 6, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, alignment: WrapAlignment.end, children: [
-          if (tel.isNotEmpty)
-            VButton('Avvisa', icon: 'chat', size: BtnSize.sm, kind: a['stato'] == 'posto_libero' ? BtnKind.primary : BtnKind.normal, onPressed: () {
-              openLink(context, 'https://wa.me/${waNumber(tel)}?text=${Uri.encodeComponent(msg)}');
-              avvisato();
-            }),
-          if (str(a['email']).isNotEmpty)
-            VButton('', icon: 'mail', size: BtnSize.sm, onPressed: () {
-              openLink(context, 'mailto:${a['email']}?subject=${Uri.encodeComponent('Si è liberato un posto')}&body=${Uri.encodeComponent(msg)}');
-              avvisato();
-            }),
-          SizedBox(
-            width: 150,
-            child: VSelect<String>(
-              value: '',
-              dense: true,
-              items: const [('', 'Segna come…'), ('avvisato', 'Avvisato'), ('prenotato', 'Ha prenotato'), ('chiusa', 'Chiusa')],
-              onChanged: (v) async {
-                if (v == null || v.isEmpty) return;
-                await s.repo.attStato(a['id'], v);
-                s.toast('Aggiornato');
-              },
-            ),
-          ),
-          IconBtn('trash', tooltip: 'Elimina', danger: true, onPressed: () async {
-            if (await confirmDialog(context, "Eliminare dalla lista d'attesa?")) await s.repo.attElimina(a['id']);
-          }),
-        ]),
-      ];
-    }
-
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      if (cfg['listaAttesa'] != true) AlertBox.text("La lista d'attesa è disattivata per i clienti: attivala da \"Orari, collaboratori e servizi\"."),
-      Text("Quando un appuntamento viene annullato o spostato, le persone in attesa per quel giorno che trovano un orario adatto vengono segnalate in verde. Avvisale con un clic.", style: t.text(color: t.muted)),
-      const Gap(16),
-      if (attivi.isEmpty) const EmptyState(icon: 'clock', small: true, text: "Nessuno in lista d'attesa.") else AdminTable(rows: [for (final a in attivi) riga(a)]),
-      if (altriUltimi.isNotEmpty) ...[
-        Padding(padding: const EdgeInsets.only(top: 20, bottom: 10), child: Text('Archivio', style: t.title(size: 15.2, color: t.ink2, weight: FontWeight.w700))),
-        AdminTable(rows: [for (final a in altriUltimi) riga(a)]),
-      ],
     ]);
   }
 }
@@ -583,42 +519,41 @@ class _ImpostazioniState extends State<_Impostazioni> {
       const FieldDef('messaggio', 'Messaggio dopo la prenotazione', type: 'textarea', rows: 2, wide: true),
       const FieldDef('modificaCliente', 'Il cliente può spostare o annullare da solo, con il suo link personale', type: 'bool', wide: true),
       const FieldDef('limiteModificaOre', 'Fino a quante ore prima', type: 'number', unit: 'ore', min: 0, step: 1),
-      const FieldDef('listaAttesa', "Lista d'attesa quando non ci sono orari liberi", type: 'bool'),
       const FieldDef('orari', 'Orari in cui si possono prenotare appuntamenti', type: 'orari', wide: true, gruppo: 'Orari e chiusure'),
       const FieldDef('chiusure', 'Chiusure e ferie', type: 'list', wide: true, nomeElemento: 'chiusura', fields: [
         FieldDef('dal', 'Dal', type: 'date'),
         FieldDef('al', 'Al (compreso)', type: 'date'),
         FieldDef('motivo', 'Motivo', placeholder: 'es. Ferie estive'),
       ]),
-      FieldDef('collaboratori', 'Collaboratori',
+      FieldDef('collaboratori', 'Agenti',
           type: 'list',
           wide: true,
-          gruppo: 'Collaboratori',
-          nomeElemento: 'collaboratore',
-          hint: "Se non aggiungi collaboratori c'è un'unica agenda. Con più collaboratori ogni orario viene calcolato per ciascuno e il cliente può scegliere con chi prenotare.",
+          gruppo: 'Agenti',
+          nomeElemento: 'agente',
+          hint: "Ogni agente ha la sua agenda: gli orari liberi sono calcolati per ciascuno e il cliente può scegliere con chi fare la visita. Senza agenti c'è un'unica agenda.",
           fields: [
             const FieldDef('nome', 'Nome', required: true),
-            const FieldDef('ruolo', 'Ruolo', placeholder: 'es. Igienista, Massaggiatrice'),
+            const FieldDef('ruolo', 'Ruolo', placeholder: 'es. Consulente immobiliare'),
             const FieldDef('attivo', 'Attivo (prenotabile)', type: 'bool', defaultValue: true),
             if (opzServ.isNotEmpty) FieldDef('servizi', 'Servizi che svolge (nessuno selezionato = tutti)', type: 'checks', wide: true, options: opzServ),
             const FieldDef('orariPropri', 'Ha orari diversi da quelli generali', type: 'bool'),
-            const FieldDef('orari', 'Orari del collaboratore', type: 'orari', wide: true),
+            const FieldDef('orari', "Orari dell'agente", type: 'orari', wide: true),
             const FieldDef('chiusure', 'Ferie / assenze', type: 'list', wide: true, nomeElemento: 'assenza', fields: [
               FieldDef('dal', 'Dal', type: 'date'),
               FieldDef('al', 'Al', type: 'date'),
               FieldDef('motivo', 'Motivo'),
             ]),
           ]),
-      const FieldDef('servizi', 'Servizi prenotabili aggiuntivi',
+      const FieldDef('servizi', 'Appuntamenti prenotabili',
           type: 'list',
           wide: true,
           gruppo: 'Servizi',
           nomeElemento: 'servizio',
-          hint: 'Le voci del catalogo con una durata sono già prenotabili. Qui puoi aggiungere altri appuntamenti (es. "Visita immobile", "Test drive", "Consulenza").',
+          hint: "Gli appuntamenti che i clienti possono prenotare (es. «Visita di un immobile», «Valutazione gratuita»). Per quelli con la parola «visita» nel nome il cliente sceglie anche l'immobile.",
           fields: [
             FieldDef('nome', 'Nome', required: true),
             FieldDef('durata', 'Durata', type: 'number', unit: 'minuti', min: 5, step: 5),
-            FieldDef('prezzo', 'Prezzo', type: 'money', unit: '€'),
+            FieldDef('prezzo', 'Prezzo (vuoto se gratuito)', type: 'money', unit: '€'),
           ]),
     ], 'Regole');
     return FormCtrl(defs, s.repo.prenConfig());

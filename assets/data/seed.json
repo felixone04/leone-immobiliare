@@ -11,6 +11,7 @@
         "telefono": "+39 02 1234 5678",
         "whatsapp": "393331234567",
         "email": "info@leoneimmobiliare.example",
+        "urlSito": "https://felixone04.github.io/leone-immobliare/",
         "indirizzo": "Via Solferino 12, 20121 Milano (MI)",
         "orari": "Lun–Ven 9:00–19:00\nSabato 9:30–13:00\nDomenica su appuntamento",
         "piva": "01234567890",
@@ -21,7 +22,6 @@
             "lat": 45.4776,
             "lng": 9.1872
         },
-        "tema": "leone",
         "tipo": "immobiliare"
     },
     "items": [
@@ -138,7 +138,8 @@
             ],
             "video": "",
             "creato": 1790550364743,
-            "modificato": 1790723164930
+            "modificato": 1790723164930,
+            "esclusiva": true
         },
         {
             "id": "dm62ou",
@@ -197,7 +198,8 @@
             ],
             "video": "",
             "creato": 1790463964743,
-            "modificato": 1790723164930
+            "modificato": 1790723164930,
+            "esclusiva": true
         },
         {
             "id": "dgsvaj",
@@ -258,7 +260,8 @@
             ],
             "video": "",
             "creato": 1790291164743,
-            "modificato": 1790723164930
+            "modificato": 1790723164930,
+            "prezzoPrecedente": 1219000
         },
         {
             "id": "dj969k",
@@ -551,15 +554,8 @@
             "id": "eeb6ca001a5b65f8",
             "tipo": "prenota",
             "attivo": true,
-            "titolo": "Prenota online",
-            "testo": "Scegli il servizio, il giorno e l'orario che preferisci: ricevi subito la conferma."
-        },
-        {
-            "id": "f109c21f6d40a000",
-            "tipo": "offerte",
-            "attivo": true,
-            "titolo": "Offerte in corso",
-            "quanti": 3
+            "titolo": "Prenota una visita",
+            "testo": "Scegli l'immobile, il giorno e l'orario: un nostro agente ti accompagnerà."
         },
         {
             "id": "d3wl4i",
@@ -662,20 +658,6 @@
             ]
         },
         {
-            "id": "fa1339cc951fc6c9",
-            "tipo": "fedelta",
-            "attivo": true,
-            "titolo": "Tessera fedeltà",
-            "testo": "Raccogli i timbri a ogni visita e ricevi un regalo."
-        },
-        {
-            "id": "f2a208ab1bd4d2ee",
-            "tipo": "giftcard",
-            "attivo": true,
-            "titolo": "Regala un'esperienza",
-            "testo": "Scegli un importo o uno dei nostri servizi: la gift card si paga in struttura."
-        },
-        {
             "id": "d9qx3b",
             "tipo": "contatti",
             "attivo": true,
@@ -687,9 +669,6 @@
     ],
     "moduli": {
         "prenotazioni": true,
-        "fedelta": false,
-        "pacchetti": false,
-        "offerte": true,
         "recensioni": true
     },
     "prenotazioni": {
@@ -700,7 +679,6 @@
         "anticipo": 30,
         "modificaCliente": true,
         "limiteModificaOre": 12,
-        "listaAttesa": true,
         "orari": [
             [],
             [
@@ -799,28 +777,6 @@
             }
         ],
         "messaggio": "Grazie! Ti contatteremo per confermare l'appuntamento."
-    },
-    "giftcard": {
-        "attiva": false,
-        "proposte": []
-    },
-    "fedelta": null,
-    "pacchetti": null,
-    "offerte": {
-        "offerte": [
-            {
-                "id": "valutazione",
-                "titolo": "Valutazione + servizio fotografico gratis",
-                "sconto": "Omaggio",
-                "attiva": true,
-                "dal": "2026-09-24",
-                "al": "2026-10-19",
-                "countdown": true,
-                "descrizione": "Affidaci la vendita della tua casa entro fine mese: servizio fotografico professionale e virtual tour inclusi.",
-                "personale": true,
-                "limite": 10
-            }
-        ]
     },
     "recensioniCfg": {
         "approvazione": "manuale",

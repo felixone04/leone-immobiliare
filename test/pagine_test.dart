@@ -35,7 +35,7 @@ void main() {
     }
   });
 
-  Future<void> avvia(WidgetTester tester, Size size) async {
+  Future<void> avvia(WidgetTester tester, Size size, {bool cliente = false}) async {
     tester.view.physicalSize = size;
     tester.view.devicePixelRatio = 1;
     await tester.runAsync(() async {
@@ -46,6 +46,13 @@ void main() {
       final auth = await AuthService.open(await LocalStore.open('test_${dbN++}.auth'));
       if (!auth.configurato) await auth.crea('prova', 'provaprova123');
       state = AppState(repo, auth);
+      if (cliente) {
+        // un cliente con preferiti, una ricerca salvata e un messaggio (pagine dell'account, Clienti, Email)
+        await repo.clienteRegistra({'nome': 'Mario Rossi', 'email': 'mario.rossi@example.com', 'password': 'prova1234', 'consenso': true});
+        await repo.preferitoCambia(str(repo.items.first['id']));
+        await repo.ricercaSalva({'contratto': 'Vendita', 'budget': 500000, 'localiMin': 2}, nome: 'Casa per la famiglia');
+        await repo.richiestaCrea({'nome': 'Mario Rossi', 'email': 'mario.rossi@example.com', 'messaggio': 'Vorrei visitare la casa', 'immobile': str(repo.items.first['id'])});
+      }
     });
     // le sezioni dell'area riservata vanno controllate da dentro, non dalla pagina di accesso
     expect(state.auth.isAdmin, isTrue);
@@ -66,11 +73,9 @@ void main() {
       '/scheda/inesistente',
       for (final s in slugs) '/p/$s',
       '/prenota',
-      '/giftcard',
-      '/fedelta',
-      '/pacchetti',
-      '/offerte',
+      if (ids.isNotEmpty) '/prenota?servizio=x-visita&immobile=${ids.first}',
       '/recensioni',
+      for (final v in ['', '/preferiti', '/ricerche', '/dati']) '/account$v',
       '/pagina-che-non-esiste',
       '/admin',
       '/admin/catalogo',
@@ -79,12 +84,12 @@ void main() {
       '/admin/widget',
       '/admin/pagine',
       '/admin/messaggi',
-      for (final v in ['agenda', 'lista', 'attesa', 'impostazioni']) '/admin/prenotazioni/$v',
-      '/admin/cassa',
-      for (final v in ['elenco', 'impostazioni']) '/admin/giftcard/$v',
-      for (final v in ['tessere', 'impostazioni']) '/admin/fedelta/$v',
-      for (final v in ['venduti', 'offerti']) '/admin/pacchetti/$v',
-      for (final v in ['offerte', 'coupon']) '/admin/offerte/$v',
+      for (final v in ['agenda', 'lista', 'impostazioni']) '/admin/prenotazioni/$v',
+      '/admin/statistiche',
+      '/admin/clienti',
+      for (final c in repo.clienti) '/admin/clienti/${c['id']}',
+      for (final v in ['uscita', 'inviate', 'nuova']) '/admin/posta/$v',
+      if (ids.isNotEmpty) '/admin/posta/nuova?immobili=${ids.first}',
       for (final v in ['elenco', 'impostazioni']) '/admin/recensioni/$v',
       '/admin/impostazioni',
       '/admin/backup',
@@ -149,11 +154,11 @@ void main() {
       tester.view.reset();
     });
 
-    testWidgets('tutte le pagine con tutte le funzioni attive ($nome)', (tester) async {
+    testWidgets('tutte le pagine con tutte le funzioni attive e un cliente collegato ($nome)', (tester) async {
       final ripristina = ascolta();
       final List<String> trovati;
       try {
-        await avvia(tester, size);
+        await avvia(tester, size, cliente: true);
         await tester.runAsync(() => state.repo.setModuli({for (final k in kModuli) k: true}));
         await tester.pump();
         trovati = await visita(tester);

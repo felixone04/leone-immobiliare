@@ -80,13 +80,6 @@ String newId([int bytes = 8]) => List.generate(bytes, (_) => _rnd.nextInt(256).t
 
 String uid() => DateTime.now().millisecondsSinceEpoch.toRadixString(36) + newId(3);
 
-/// Codice leggibile tipo "GC-AB12-CD34" (senza caratteri ambigui).
-String readableCode(String prefix) {
-  const alf = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  final c = List.generate(8, (_) => alf[_rnd.nextInt(alf.length)]).join();
-  return '$prefix-${c.substring(0, 4)}-${c.substring(4)}';
-}
-
 /// Link consentiti nei contenuti (blocca javascript: e simili).
 String safeUrl(Object? u) {
   final s = str(u).trim();
@@ -135,7 +128,6 @@ String shortPrice(num n) {
   return fmtPrice(n);
 }
 
-String euro(Object? n) => fmtPrice(numOrNull(n) ?? 0);
 
 /* ---------------- Date ---------------- */
 
@@ -160,18 +152,9 @@ String addDays(String s, int n) {
   return isoDate(DateTime(d.year, d.month, d.day + n));
 }
 
-DateTime addMonths(DateTime d, int m) {
-  final y = d.year + ((d.month - 1 + m) ~/ 12);
-  final mo = (d.month - 1 + m) % 12 + 1;
-  final last = DateTime(y, mo + 1, 0).day;
-  return DateTime(y, mo, min(d.day, last));
-}
 
 /// "mercoledì 8 ottobre" (come toLocaleDateString con weekday long, day numeric, month long)
 String fmtDate(String iso, [String pattern = 'EEEE d MMMM']) => DateFormat(pattern, 'it').format(parseDate(iso));
-
-String fmtDateLong(String iso) => fmtDate(iso, 'd MMMM y');
-String fmtDateShort(String iso) => fmtDate(iso, 'd MMM y');
 
 /// "8 ott, 10:42"
 String fmtWhen(int ms) => DateFormat('d MMM, HH:mm', 'it').format(DateTime.fromMillisecondsSinceEpoch(ms));

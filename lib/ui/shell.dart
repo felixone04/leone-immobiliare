@@ -8,7 +8,9 @@ import 'package:go_router/go_router.dart';
 import '../core/icons.dart';
 import '../core/theme.dart';
 import '../core/util.dart';
+import '../data/repository.dart';
 import '../state/app_state.dart';
+import 'clienti/account.dart';
 import 'dialogs.dart';
 import 'kit.dart';
 
@@ -116,12 +118,17 @@ class SiteHeader extends StatelessWidget {
     final t = context.t;
     final narrow = context.vw <= 860;
     final brand = const _Brand();
-    final menu = _MenuButton(location: location);
+    final admin = App.of(context).auth.isAdmin;
+    final menu = Row(mainAxisSize: MainAxisSize.min, children: [
+      if (admin) ...[const AdminBell(), const SizedBox(width: 8)],
+      if (!location.startsWith('/admin')) ...[AccountBtn(compatto: narrow), const SizedBox(width: 8)],
+      _MenuButton(location: location),
+    ]);
     final search = _SearchBox(focus: searchFocus);
     return Container(
       decoration: BoxDecoration(
-        color: t.minimal || t.leone ? Colors.white : Colors.white.withValues(alpha: t.moderno ? .8 : .92),
-        border: Border(bottom: t.leone ? BorderSide(color: t.primary, width: 3) : BorderSide(color: t.minimal ? const Color(0xFF111111) : t.line)),
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: t.primary, width: 3)),
       ),
       child: Center(
         child: ConstrainedBox(
@@ -138,17 +145,14 @@ class SiteHeader extends StatelessWidget {
               : Container(
                   constraints: const BoxConstraints(minHeight: 72),
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: LayoutBuilder(builder: (c, box) {
-                    final side = ((box.maxWidth - 40 - 560) / 2).clamp(150.0, 9999.0);
-                    final sw = (box.maxWidth - 40 - 2 * side).clamp(200.0, 560.0);
-                    return Row(children: [
-                      Expanded(child: Align(alignment: Alignment.centerLeft, child: brand)),
-                      const SizedBox(width: 20),
-                      SizedBox(width: sw, child: search),
-                      const SizedBox(width: 20),
-                      Expanded(child: Align(alignment: Alignment.centerRight, child: menu)),
-                    ]);
-                  }),
+                  // a destra campanella, account e menu nella loro misura; la ricerca occupa lo spazio che resta (max 560)
+                  child: Row(children: [
+                    Flexible(child: Align(alignment: Alignment.centerLeft, child: brand)),
+                    const SizedBox(width: 20),
+                    Expanded(flex: 2, child: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 560), child: search))),
+                    const SizedBox(width: 20),
+                    menu,
+                  ]),
                 ),
         ),
       ),
@@ -321,7 +325,7 @@ class _SearchResults extends StatelessWidget {
       return words.every(hay.contains);
     }).toList();
 
-    Widget sec(String l) => Padding(padding: const EdgeInsets.fromLTRB(10, 8, 10, 4), child: Text(l.toUpperCase(), style: t.caps(size: 11.5, spacing: .08)));
+    Widget sec(String l) => Padding(padding: const EdgeInsets.fromLTRB(10, 8, 10, 4), child: Text(l.toUpperCase(), style: t.caps(size: 11.5)));
     Widget row({required Widget thumb, required String title, String? sub, required String path}) => Hover(
           onTap: () => onGo(path),
           builder: (_, h) => Container(
@@ -395,6 +399,50 @@ class _SearchResults extends StatelessWidget {
           decoration: BoxDecoration(color: Colors.white, border: Border.all(color: t.line), borderRadius: t.r, boxShadow: t.shadowLg),
           child: SingleChildScrollView(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: children)),
         ),
+      ),
+    );
+  }
+}
+
+/* ---------- Notifiche per l'agenzia ---------- */
+
+/// Campanella dell'agenzia collegata: messaggi nuovi, prenotazioni da confermare,
+/// recensioni da approvare ed email da inviare. Porta alla panoramica dell'area riservata.
+class AdminBell extends StatelessWidget {
+  const AdminBell({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final s = App.of(context);
+    final t = context.t;
+    final c = s.repo.contatori();
+    final n = (c['messaggi'] ?? 0) + (c['prenotazioni'] ?? 0) + (c['recensioni'] ?? 0) + (c['posta'] ?? 0);
+    final narrow = context.vw <= 860;
+    return Tooltip(
+      message: n == 0 ? 'Nessuna novità' : 'Novità da vedere: $n',
+      child: Hover(
+        onTap: () => context.go(c['messaggi']! > 0 ? '/admin/messaggi' : '/admin'),
+        builder: (_, h) => Stack(clipBehavior: Clip.none, children: [
+          Container(
+            width: narrow ? 42 : 46,
+            height: narrow ? 42 : 46,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(color: Colors.white, border: Border.all(color: h ? t.primary : t.line2), borderRadius: BorderRadius.circular(t.controlRadius)),
+            child: VIcon('bell', color: n > 0 ? t.primary : (h ? t.primary : t.ink)),
+          ),
+          if (n > 0)
+            Positioned(
+              right: -5,
+              top: -5,
+              child: Container(
+                constraints: const BoxConstraints(minWidth: 20),
+                height: 20,
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(color: VTheme.danger, borderRadius: BorderRadius.circular(999), border: Border.all(color: Colors.white, width: 1.5)),
+                child: Text('$n', style: t.text(size: 11, weight: FontWeight.w800, color: Colors.white, height: 1)),
+              ),
+            ),
+        ]),
       ),
     );
   }
@@ -538,10 +586,11 @@ class _MenuDropdown extends StatelessWidget {
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, mainAxisSize: MainAxisSize.min, children: [
                   item('/', 'home', 'Home'),
                   item('/catalogo', sch.icona, sch.plurale),
-                  if (state.modulo('prenotazioni')) item('/prenota', 'calendar', 'Prenota online', cta: true),
+                  if (state.modulo('prenotazioni')) item('/prenota', 'calendar', 'Prenota una visita', cta: true),
                   if (voci.isNotEmpty) ...[
                     hr(),
-                    Padding(padding: const EdgeInsets.fromLTRB(12, 6, 12, 2), child: Text('PER TE', style: t.caps(size: 11.2, weight: FontWeight.w800, spacing: .1))),
+                    Padding(padding: const EdgeInsets.fromLTRB(12, 6, 12, 2), child: Text('PER TE', style: t.caps(size: 11.2))),
+                    item('/account', 'user', state.repo.cliente == null ? 'Accedi o crea un account' : 'Il mio account'),
                     for (final (h, ic, l) in voci) item('/$h', ic, l),
                     hr(),
                   ],
@@ -582,8 +631,8 @@ class SiteFooter extends StatelessWidget {
         Container(
           margin: const EdgeInsets.only(bottom: 16),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(t.leone ? 8 : 12)),
-          child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 200), child: SizedBox(height: t.leone ? 56 : 40, child: VImage(logo, fit: BoxFit.contain, alignment: Alignment.centerLeft))),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(8)),
+          child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 200), child: SizedBox(height: 56, child: VImage(logo, fit: BoxFit.contain, alignment: Alignment.centerLeft))),
         )
       else
         Padding(padding: const EdgeInsets.only(bottom: 10), child: Text(str(set['nome']), style: t.title(size: 20.8, color: Colors.white))),
@@ -599,8 +648,8 @@ class SiteFooter extends StatelessWidget {
                   width: 40,
                   height: 40,
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(color: h ? t.footerAccent : Colors.white.withValues(alpha: .08), shape: t.minimal ? BoxShape.rectangle : BoxShape.circle),
-                  child: VIcon(k, color: h ? t.onFooterAccent : txt),
+                  decoration: BoxDecoration(color: h ? t.primary : Colors.white.withValues(alpha: .08), shape: BoxShape.circle),
+                  child: VIcon(k, color: h ? t.onPrimary : txt),
                 ),
               ),
             ),
@@ -609,14 +658,15 @@ class SiteFooter extends StatelessWidget {
     final colEsplora = Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       h4('Esplora'),
       link(s.repo.schema.plurale, '#/catalogo'),
-      if (s.modulo('prenotazioni')) link('Prenota online', '#/prenota'),
+      if (s.modulo('prenotazioni')) link('Prenota una visita', '#/prenota'),
+      link(s.repo.cliente == null ? 'Accedi o crea un account' : 'Il mio account', '#/account'),
       for (final (h, _, l) in s.vociClienti) link(l, '#/$h'),
       for (final p in pagine) link(str(p['titolo']), '#/p/${p['slug']}'),
     ]);
     Widget contact(String icon, Widget child) => Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Padding(padding: const EdgeInsets.only(top: 3), child: VIcon(icon, color: t.footerAccent)),
+            Padding(padding: const EdgeInsets.only(top: 3), child: VIcon(icon, color: t.primary)),
             const SizedBox(width: 10),
             Expanded(child: child),
           ]),
@@ -645,7 +695,7 @@ class SiteFooter extends StatelessWidget {
     }
     final bottomStyle = t.text(size: 13.6, color: const Color(0xFF8B929B));
     return Container(
-      decoration: BoxDecoration(color: t.footerBg, border: t.leone ? Border(top: BorderSide(color: t.primary, width: 4)) : null),
+      decoration: BoxDecoration(color: t.footerBg, border: Border(top: BorderSide(color: t.primary, width: 4))),
       padding: const EdgeInsets.only(top: 56),
       child: Contained(
         child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [

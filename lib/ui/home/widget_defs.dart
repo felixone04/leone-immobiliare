@@ -73,12 +73,5 @@ final Map<String, WidgetDef> kWidgetDefs = {
     FieldDef('testo', 'Testo', type: 'textarea', rows: 2, wide: true),
     FieldDef('pulsante', 'Testo del pulsante', placeholder: 'Prenota ora'),
   ]),
-  'offerte': const WidgetDef('Offerte a tempo', 'tag', 'Le offerte in corso con conto alla rovescia (visibile solo se le offerte sono attive)', [_t, _st, FieldDef('quanti', 'Quante mostrarne', type: 'number', min: 1, step: 1)]),
-  'fedelta': const WidgetDef('Tessera fedeltà', 'star', 'Invito a richiedere la tessera fedeltà (visibile solo se attiva)', [_t, FieldDef('testo', 'Testo', type: 'textarea', rows: 2, wide: true)]),
-  'giftcard': const WidgetDef('Gift card', 'gift', 'Invito a regalare una gift card (visibile solo se le gift card sono attive)', [
-    _t,
-    FieldDef('testo', 'Testo', type: 'textarea', rows: 2, wide: true),
-    FieldDef('pulsante', 'Testo del pulsante', placeholder: 'Regala una gift card'),
-  ]),
   'contatti': const WidgetDef('Invito al contatto', 'phone', 'Fascia con titolo, telefono, email e WhatsApp', [_t, FieldDef('testo', 'Testo', type: 'textarea', rows: 2, wide: true), ..._btn]),
 };

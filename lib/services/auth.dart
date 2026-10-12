@@ -56,7 +56,7 @@ class AuthService extends ChangeNotifier {
     final u = username.trim();
     if (!RegExp(r'^[a-zA-Z0-9._-]{3,40}$').hasMatch(u)) throw const AppError('Nome utente: da 3 a 40 caratteri tra lettere, numeri, punto, trattino');
     _controllaRobustezza(password);
-    _account = {'username': u, ...await _hash(password), 'creato': nowMs()};
+    _account = {'username': u, ...await hashPassword(password), 'creato': nowMs()};
     await _store.set('auth', _account);
     _entra(u);
   }
@@ -65,7 +65,7 @@ class AuthService extends ChangeNotifier {
     final tentativi = await _tentativiRecenti();
     if (tentativi.length >= _maxTentativi) throw const AppError('Troppi tentativi. Riprova tra qualche minuto.');
     final a = _account;
-    final ok = a != null && username.trim() == a['username'] && await _verifica(password, a);
+    final ok = a != null && username.trim() == a['username'] && await verificaPassword(password, a);
     if (!ok) {
       await _store.set('tentativi', [...tentativi, nowMs()]);
       await Future<void>.delayed(const Duration(milliseconds: 400));
@@ -83,9 +83,9 @@ class AuthService extends ChangeNotifier {
   Future<void> cambiaPassword(String attuale, String nuova) async {
     final a = _account;
     if (a == null || !isAdmin) throw const AppError('Nessun account da modificare');
-    if (!await _verifica(attuale, a)) throw const AppError('La password attuale non è corretta');
+    if (!await verificaPassword(attuale, a)) throw const AppError('La password attuale non è corretta');
     _controllaRobustezza(nuova);
-    _account = {...a, ...await _hash(nuova)};
+    _account = {...a, ...await hashPassword(nuova)};
     await _store.set('auth', _account);
   }
 
@@ -108,7 +108,8 @@ class AuthService extends ChangeNotifier {
     return [for (final t in (l is List ? l : const [])) if (intOf(t) > limite) intOf(t)];
   }
 
-  static Future<Json> _hash(String password) async {
+  /// Impronta PBKDF2 della password (anche per gli account dei clienti).
+  static Future<Json> hashPassword(String password) async {
     final rnd = Random.secure();
     final salt = List<int>.generate(16, (_) => rnd.nextInt(256));
     final h = await _derive(password, salt, _iterazioni);
@@ -121,10 +122,10 @@ class AuthService extends ChangeNotifier {
     return key.extractBytes();
   }
 
-  static Future<bool> _verifica(String password, Json a) async {
+  /// Confronta la password con l'impronta salvata, a tempo costante.
+  static Future<bool> verificaPassword(String password, Json a) async {
     final h = await _derive(password, base64Decode(str(a['salt'])), intOf(a['iter'], _iterazioni));
     final atteso = base64Decode(str(a['hash']));
-    // confronto a tempo costante
     var diff = h.length ^ atteso.length;
     for (var i = 0; i < min(h.length, atteso.length); i++) {
       diff |= h[i] ^ atteso[i];

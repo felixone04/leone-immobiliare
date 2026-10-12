@@ -36,7 +36,7 @@ class AdminHead extends StatelessWidget {
                 ]),
               ),
             ),
-          if (t.leone && back == null) Padding(padding: const EdgeInsets.only(bottom: 10), child: RoofMark(width: 46, height: 14, color: t.primary)),
+          if (back == null) Padding(padding: const EdgeInsets.only(bottom: 10), child: RoofMark(width: 46, height: 14, color: t.primary)),
           ConstrainedBox(constraints: const BoxConstraints(maxWidth: 640), child: Text(title, style: t.title(size: 28))),
           if (sub != null) Padding(padding: const EdgeInsets.only(top: 4), child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 640), child: Text(sub!, style: t.text(color: t.muted)))),
           if (subWidget != null) Padding(padding: const EdgeInsets.only(top: 4), child: subWidget!),

@@ -66,8 +66,8 @@ class _ContattiPage extends StatelessWidget {
               width: 44,
               height: 44,
               alignment: Alignment.center,
-              decoration: BoxDecoration(color: t.minimal ? const Color(0xFF111111) : t.primarySoft, borderRadius: BorderRadius.circular(t.minimal ? 0 : 12)),
-              child: VIcon(icon, size: 22, color: t.minimal ? Colors.white : t.primary),
+              decoration: BoxDecoration(color: t.primarySoft, borderRadius: BorderRadius.circular(12)),
+              child: VIcon(icon, size: 22, color: t.primary),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -122,17 +122,14 @@ class PrivacyPage extends StatelessWidget {
     final s = App.of(context);
     final t = context.t;
     final set = s.settings;
-    final m = s.repo.moduli;
     final titolare = str(set['ragioneSociale']).isNotEmpty ? str(set['ragioneSociale']) : str(set['nome']);
     final emailPriv = str(set['emailPrivacy']).isNotEmpty ? str(set['emailPrivacy']) : str(set['email']);
     final tratt = [
       ['Richieste di contatto', 'nome, email, telefono e testo del messaggio', 'rispondere alla tua richiesta', 'misure precontrattuali / consenso', '24 mesi'],
-      if (m['prenotazioni'] == true) ["Prenotazioni e lista d'attesa", 'nome, email, telefono, servizio, data e note', "gestire l'appuntamento e avvisarti se si libera un posto", 'esecuzione di un servizio da te richiesto', "24 mesi dall'appuntamento"],
-      if (m['giftcard'] == true) ['Gift card', 'nome, contatti, nome del destinatario e dedica', 'emettere e gestire la gift card', 'esecuzione del contratto', 'fino alla scadenza della carta + 24 mesi'],
-      if (m['fedelta'] == true) ['Tessera fedeltà', 'nome, telefono, email, timbri raccolti', 'gestire il programma fedeltà', 'consenso / adesione al programma', 'fino alla richiesta di cancellazione o 24 mesi di inattività'],
-      if (m['pacchetti'] == true) ['Pacchetti a sedute', 'nome, contatti, sedute utilizzate', 'gestire il pacchetto acquistato', 'esecuzione del contratto', 'fino alla scadenza + 24 mesi'],
-      if (m['offerte'] == true) ['Coupon', 'nome e contatti', 'emettere il coupon personale', 'consenso', "fino alla scadenza dell'offerta + 12 mesi"],
-      if (m['recensioni'] == true) ['Recensioni', 'nome (pubblicato), testo, voto, email facoltativa (non pubblicata)', 'pubblicare la tua opinione', 'consenso', 'fino alla richiesta di cancellazione'],
+      if (s.modulo('prenotazioni')) ['Visite e appuntamenti', "nome, email, telefono, immobile o servizio, data e note", "organizzare l'appuntamento con l'agente", 'esecuzione di un servizio da te richiesto', "24 mesi dall'appuntamento"],
+      ['Account cliente', 'nome, email, telefono, password (solo in forma cifrata), immobili preferiti, ricerche salvate', 'conservare preferiti e ricerche e avvisarti quando un immobile corrisponde a una tua ricerca', 'esecuzione del servizio da te richiesto', "fino alla cancellazione dell'account"],
+      ['Proposte di immobili e offerte via email', 'nome ed email', 'inviarti nuovi immobili e offerte', 'consenso (facoltativo, revocabile in ogni momento)', 'fino alla revoca del consenso'],
+      if (s.modulo('recensioni')) ['Recensioni', 'nome (pubblicato), testo, voto, email facoltativa (non pubblicata)', 'pubblicare la tua opinione', 'consenso', 'fino alla richiesta di cancellazione'],
     ];
     final agg = DateFormat('d MMMM y', 'it').format(DateTime.now());
     final base = t.text(size: 16.6, color: t.ink2, height: 1.6);

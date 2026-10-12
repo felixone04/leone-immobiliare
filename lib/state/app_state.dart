@@ -65,13 +65,11 @@ class AppState extends ChangeNotifier {
     return null;
   }
 
-  /* ---------- Voci "per te" del menu ---------- */
+  /* ---------- Voci "per te" del menu e del piè di pagina: (percorso, icona, etichetta) ---------- */
   List<(String, String, String)> get vociClienti => [
-        if (modulo('offerte')) ('offerte', 'tag', 'Offerte'),
-        if (modulo('giftcard')) ('giftcard', 'gift', 'Gift card'),
-        if (modulo('pacchetti')) ('pacchetti', 'layers', 'Pacchetti'),
-        if (modulo('fedelta')) ('fedelta', 'star', 'Tessera fedeltà'),
-        if (modulo('recensioni')) ('recensioni', 'heart', 'Recensioni'),
+        ('account/preferiti', 'heart', 'I miei preferiti'),
+        ('account/ricerche', 'bookmark', 'Ricerche salvate'),
+        if (modulo('recensioni')) ('recensioni', 'star', 'Recensioni'),
       ];
 
   String get slugPrivacy => str(repo.pages.where((p) => p['tipo'] == 'privacy').firstOrNull?['slug']).isEmpty

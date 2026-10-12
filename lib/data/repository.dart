@@ -11,22 +11,23 @@ import 'package:sembast/sembast.dart';
 
 import '../app_config.dart';
 import '../core/util.dart';
+import '../services/auth.dart';
+import 'abbinamento.dart';
+import 'catalog.dart';
 import 'preset.dart';
 import 'store.dart';
 
+part 'repo_account.dart';
 part 'repo_booking.dart';
 part 'repo_clienti.dart';
-part 'repo_giftcard.dart';
+part 'repo_posta.dart';
 
-const kModuli = ['prenotazioni', 'fedelta', 'pacchetti', 'offerte', 'recensioni'];
+const kModuli = ['prenotazioni', 'recensioni'];
 
 /// Moduli attivabili: [chiave, etichetta, descrizione, icona]
 const kModuliInfo = [
-  ['prenotazioni', 'Prenotazioni online', "Agenda con orari, collaboratori, lista d'attesa e gift card", 'calendar'],
-  ['fedelta', 'Tessera fedeltà', 'Timbri o punti raccolti a ogni visita', 'star'],
-  ['pacchetti', 'Pacchetti a sedute', 'Es. 10 ingressi, con le sedute scalate a ogni visita', 'layers'],
-  ['offerte', 'Offerte a tempo e coupon', 'Promozioni con scadenza e conto alla rovescia', 'tag'],
-  ['recensioni', 'Recensioni dei clienti', "Con moderazione e risposta dell'azienda", 'heart'],
+  ['prenotazioni', 'Visite e appuntamenti online', 'I clienti prenotano visite e consulenze; agenda per agente', 'calendar'],
+  ['recensioni', 'Recensioni dei clienti', "Con moderazione e risposta dell'agenzia", 'heart'],
 ];
 
 class Repo extends ChangeNotifier {
@@ -45,8 +46,14 @@ class Repo extends ChangeNotifier {
   final Map<String, Json> _cfg = {};
 
   // Dati dei clienti
-  List<Json> _pren = [], _gift = [], _rich = [], _att = [], _tess = [], _rec = [];
+  List<Json> _pren = [], _rich = [], _rec = [];
   final Map<String, Uint8List> media = {};
+
+  // Account dei clienti (preferiti, ricerche, notifiche), cliente collegato in questo browser,
+  // email in uscita e statistiche degli annunci
+  List<Json> _clienti = [], _posta = [];
+  String? _sessione;
+  Json _stat = {};
 
   String? consenso;
 
@@ -67,9 +74,7 @@ class Repo extends ChangeNotifier {
       await LocalStore.kv.record('pages').put(txn, seed['pages']);
       await LocalStore.kv.record('widgets').put(txn, seed['widgets']);
       await LocalStore.kv.record('moduli').put(txn, seed['moduli'] ?? {});
-      for (final k in ['prenotazioni', 'giftcard', 'fedelta', 'pacchetti', 'offerte']) {
-        if (seed[k] != null) await LocalStore.kv.record('cfg_$k').put(txn, seed[k]);
-      }
+      if (seed['prenotazioni'] != null) await LocalStore.kv.record('cfg_prenotazioni').put(txn, seed['prenotazioni']);
       if (seed['recensioniCfg'] != null) await LocalStore.kv.record('cfg_recensioni').put(txn, seed['recensioniCfg']);
       for (final it in jsonList(seed['items'])) {
         await LocalStore.coll('items').record(it['id'] as String).put(txn, it);
@@ -86,19 +91,22 @@ class Repo extends ChangeNotifier {
     settings['tipo'] = preset.tipo;
     pages = jsonList(LocalStore.mutable(await _s.get('pages')));
     widgets = jsonList(LocalStore.mutable(await _s.get('widgets')));
+    // dati salvati con la versione precedente: via i blocchi delle funzioni eliminate
+    widgets.removeWhere((w) => const ['offerte', 'fedelta', 'giftcard'].contains(w['tipo']));
     final m = jsonOf(await _s.get('moduli'));
     _moduli = {for (final k in kModuli) k: boolOf(m[k])};
-    for (final k in [...kModuli, 'giftcard']) {
+    for (final k in kModuli) {
       _cfg[k] = jsonOf(LocalStore.mutable(await _s.get('cfg_$k')));
     }
     items = await _s.all('items');
     items.sort((a, b) => intOf(b['creato']).compareTo(intOf(a['creato'])));
     _pren = await _s.all('prenotazioni');
-    _gift = await _s.all('giftcard');
     _rich = await _s.all('richieste');
-    _att = await _s.all('attesa');
-    _tess = await _s.all('tessere');
     _rec = await _s.all('recensioni');
+    _clienti = await _s.all('clienti');
+    _posta = await _s.all('posta');
+    _sessione = await _s.get('sessioneCliente') as String?;
+    _stat = jsonOf(LocalStore.mutable(await _s.get('stat')));
     for (final r in await _s.all('media')) {
       media[r['id'] as String] = base64Decode(r['b64'] as String);
     }
@@ -117,9 +125,7 @@ class Repo extends ChangeNotifier {
 
   /* ---------------- Moduli ---------------- */
 
-  /// Moduli attivi; le gift card dipendono dalle prenotazioni e dall'attivazione dell'azienda.
-  Map<String, bool> get moduli => {..._moduli, 'giftcard': gcAttive};
-  bool modulo(String k) => moduli[k] ?? false;
+  bool modulo(String k) => _moduli[k] ?? false;
   Map<String, bool> get moduliBase => Map.of(_moduli);
 
   Future<void> setModuli(Map<String, bool> m) async {
@@ -161,6 +167,7 @@ class Repo extends ChangeNotifier {
       'creato': old != null ? intOf(old['creato'], now) : intOf(it['creato'], now),
       'modificato': now,
     };
+    _storiaPrezzoEStato(saved, old, now);
     await _s.put('items', saved['id'] as String, saved);
     if (old != null) {
       items[items.indexOf(old)] = saved;
@@ -168,7 +175,26 @@ class Repo extends ChangeNotifier {
       items.insert(0, saved);
     }
     _changed();
+    // un immobile disponibile (nuovo, tornato disponibile o ribassato) può corrispondere alle ricerche dei clienti
+    if (immobileDisponibile(saved)) await avvisaAbbinamenti(saved);
     return saved;
+  }
+
+  /// Prezzo precedente (per l'etichetta "Prezzo ribassato") e date di disponibilità e chiusura (statistiche).
+  static void _storiaPrezzoEStato(Json nuovo, Json? old, int now) {
+    final prima = numOrNull(old?['prezzo']), dopo = numOrNull(nuovo['prezzo']);
+    if (prima != null && dopo != null && dopo < prima) {
+      nuovo['prezzoPrecedente'] = prima;
+    } else if (dopo != null && numOrNull(nuovo['prezzoPrecedente']) != null && dopo >= numOrNull(nuovo['prezzoPrecedente'])!) {
+      nuovo.remove('prezzoPrecedente');
+    }
+    final disp = immobileDisponibile(nuovo);
+    if (disp && (old == null || !immobileDisponibile(old) || old['disponibileDal'] == null)) {
+      nuovo['disponibileDal'] = old != null && immobileDisponibile(old) ? intOf(old['creato'], now) : now;
+      nuovo.remove('chiusoIl');
+    } else if (!disp && (old == null || immobileDisponibile(old))) {
+      nuovo['chiusoIl'] = now;
+    }
   }
 
   Future<void> deleteItem(String id) async {
@@ -238,12 +264,6 @@ class Repo extends ChangeNotifier {
   /* ---------------- Configurazioni dei moduli ---------------- */
 
   static Json cfgDefault(String k) => switch (k) {
-        'fedelta' => {
-            'obiettivo': 10, 'unita': 'timbri', 'perVisita': 1, 'premio': 'Un servizio in omaggio',
-            'regole': "Ricevi un timbro a ogni visita. Al raggiungimento dell'obiettivo il premio è tuo!", 'richiestaOnline': true,
-          },
-        'pacchetti' => {'pacchetti': [], 'testo': 'Risparmia acquistando più sedute insieme. Il pagamento si effettua in struttura.'},
-        'offerte' => {'offerte': []},
         'recensioni' => {'approvazione': 'manuale', 'googleUrl': '', 'aperte': true},
         _ => {},
       };
@@ -251,13 +271,10 @@ class Repo extends ChangeNotifier {
   Json cfgModulo(String k) => {...cfgDefault(k), ...cloneJson(_cfg[k] ?? {})};
 
   Future<Json> saveModConfig(String k, Json c) async {
-    if (!['fedelta', 'pacchetti', 'offerte', 'recensioni'].contains(k)) throw const AppError('Modulo non valido');
+    if (k != 'recensioni') throw const AppError('Modulo non valido');
     if (!modulo(k)) throw const AppError('Questa funzione non è attiva per il sito');
     final def = cfgDefault(k);
     final out = {for (final e in c.entries) if (def.containsKey(e.key)) e.key: e.value};
-    if (k == 'pacchetti') out['pacchetti'] = conId(jsonList(out['pacchetti']));
-    if (k == 'offerte') out['offerte'] = conId(jsonList(out['offerte']));
-    if (k == 'fedelta' && intOf(out['obiettivo']) < 1) throw const AppError("L'obiettivo deve essere almeno 1");
     await _setCfg(k, out);
     return cfgModulo(k);
   }
@@ -307,8 +324,7 @@ class Repo extends ChangeNotifier {
         'pages': cloneJson(pages),
         'widgets': cloneJson(widgets),
         'prenotazioni': prenConfig(),
-        'giftcard': gcConfig(),
-        for (final m in ['fedelta', 'pacchetti', 'offerte', 'recensioni']) m: cfgModulo(m),
+        'recensioni': cfgModulo('recensioni'),
       };
 
   Json exportFull() => {
@@ -339,7 +355,7 @@ class Repo extends ChangeNotifier {
     items.sort((a, b) => intOf(b['creato']).compareTo(intOf(a['creato'])));
     await savePages(jsonList(sito['pages']));
     await saveWidgets(jsonList(sito['widgets']));
-    const liste = {'prenotazioni': ['collaboratori', 'servizi'], 'giftcard': ['proposte'], 'fedelta': <String>[], 'pacchetti': ['pacchetti'], 'offerte': ['offerte'], 'recensioni': <String>[]};
+    const liste = {'prenotazioni': ['collaboratori', 'servizi'], 'recensioni': <String>[]};
     for (final e in liste.entries) {
       if (sito[e.key] is! Map) continue;
       final c = jsonOf(sito[e.key]);
@@ -355,12 +371,11 @@ class Repo extends ChangeNotifier {
 
   Map<String, int> contatori() {
     final oggiS = oggi();
-    if (modulo('prenotazioni')) attAggiorna();
     return {
       'messaggi': _rich.where((r) => r['stato'] == 'nuova').length,
       'recensioni': _rec.where((r) => r['stato'] == 'in_attesa').length,
       'prenotazioni': modulo('prenotazioni') ? _pren.where((p) => p['stato'] == 'in_attesa' && str(p['data']).compareTo(oggiS) >= 0).length : 0,
-      'attesa': modulo('prenotazioni') ? _att.where((a) => a['stato'] == 'posto_libero').length : 0,
+      'posta': _posta.where((p) => p['stato'] != 'inviata').length,
     };
   }
 

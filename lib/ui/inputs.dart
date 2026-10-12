@@ -303,7 +303,7 @@ class SegButtons extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: on ? t.primary : Colors.white,
                   border: Border.all(color: on || h ? t.primary : t.line2),
-                  borderRadius: BorderRadius.circular(t.minimal ? 0 : (t.elegante ? 3 : t.radiusSm)),
+                  borderRadius: BorderRadius.circular(t.radiusSm),
                 ),
                 child: Text(l, textAlign: TextAlign.center, style: t.text(size: 14.4, weight: FontWeight.w600, color: on ? t.onPrimary : t.ink, height: 1.3)),
               );

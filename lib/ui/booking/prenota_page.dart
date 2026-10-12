@@ -1,4 +1,4 @@
-/// #/prenota: prenotazione online in passaggi (servizio, collaboratore, giorno, orario, dati).
+/// #/prenota: prenotazione online in passaggi (servizio, immobile da visitare, agente, giorno, orario, dati).
 library;
 
 import 'package:flutter/material.dart';
@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import '../../core/icons.dart';
 import '../../core/theme.dart';
 import '../../core/util.dart';
+import '../../data/abbinamento.dart';
 import '../../data/repository.dart';
 import '../../state/app_state.dart';
 import '../forms_public.dart';
@@ -16,8 +17,8 @@ import '../shell.dart';
 import 'booking_widgets.dart';
 
 class PrenotaPage extends StatefulWidget {
-  final String servizio;
-  const PrenotaPage({super.key, this.servizio = ''});
+  final String servizio, immobile;
+  const PrenotaPage({super.key, this.servizio = '', this.immobile = ''});
   @override
   State<PrenotaPage> createState() => _PrenotaPageState();
 }
@@ -26,6 +27,7 @@ class _PrenotaPageState extends State<PrenotaPage> {
   late final Json dati = App.read(context).repo.prenPubblico();
   Json? servizio;
   String coll = '', data = '', ora = '';
+  String immobile = '';
   Map<String, int> giorni = {};
   String cerca = '';
   Json? confermata;
@@ -43,7 +45,16 @@ class _PrenotaPageState extends State<PrenotaPage> {
   @override
   void initState() {
     super.initState();
-    if (!App.read(context).modulo('prenotazioni')) return;
+    final s = App.read(context);
+    // cliente con account: i suoi dati sono già compilati
+    final c = s.repo.cliente;
+    if (c != null) {
+      _nome.text = str(c['nome']);
+      _email.text = str(c['email']);
+      _tel.text = str(c['telefono']);
+    }
+    if (s.repo.item(widget.immobile) != null) immobile = widget.immobile;
+    if (!s.modulo('prenotazioni')) return;
     servizio = _servizi.where((s) => s['id'] == widget.servizio).firstOrNull;
     if (servizio != null) {
       _carica();
@@ -60,6 +71,9 @@ class _PrenotaPageState extends State<PrenotaPage> {
     super.dispose();
   }
 
+  /// Il servizio di visita di un immobile: chiede quale immobile.
+  static bool _visita(Json s) => norm(s['nome']).contains('visita');
+
   List<Json> _collsPer(Json s) => _colls.where((c) => strList(c['servizi']).isEmpty || strList(c['servizi']).contains(s['id'])).toList();
 
   void _carica() {
@@ -72,8 +86,9 @@ class _PrenotaPageState extends State<PrenotaPage> {
 
   void _vai(GlobalKey k) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
       final c = k.currentContext;
-      if (c != null) Scrollable.ensureVisible(c, duration: const Duration(milliseconds: 350), curve: Curves.easeInOut);
+      if (c != null && c.mounted) Scrollable.ensureVisible(c, duration: const Duration(milliseconds: 350), curve: Curves.easeInOut);
     });
   }
 
@@ -87,7 +102,7 @@ class _PrenotaPageState extends State<PrenotaPage> {
     try {
       final p = await App.read(context).repo.prenCrea({
         'nome': _nome.text, 'email': _email.text, 'telefono': _tel.text, 'note': _note.text,
-        'servizio': servizio!['id'], 'collaboratore': coll, 'data': data, 'ora': ora,
+        'servizio': servizio!['id'], 'collaboratore': coll, 'data': data, 'ora': ora, if (_visita(servizio!)) 'immobile': immobile,
       });
       setState(() => confermata = p);
       _scroll.animateTo(0, duration: const Duration(milliseconds: 300), curve: Curves.easeOut);
@@ -113,7 +128,7 @@ class _PrenotaPageState extends State<PrenotaPage> {
       body = _form(context);
     }
     return PageScroll(controller: _scroll, children: [
-      const PageHero('Prenota online', slim: true),
+      const PageHero('Prenota una visita', slim: true),
       Contained(child: Padding(padding: pagePad(context), child: body)),
     ]);
   }
@@ -164,13 +179,28 @@ class _PrenotaPageState extends State<PrenotaPage> {
       ]),
     ));
 
-    // 2. Collaboratore
+    // 2. Immobile da visitare (solo per il servizio di visita)
+    if (sv != null && _visita(sv)) {
+      final app = App.read(context);
+      final disponibili = app.repo.items.where(immobileDisponibile).toList()..sort((a, b) => str(a['titolo']).compareTo(str(b['titolo'])));
+      steps.add(PStep(
+        n: n++,
+        title: 'Quale immobile vuoi visitare?',
+        child: VSelect<String>(
+          value: immobile,
+          items: [('', 'Da concordare con l\'agente'), for (final i in disponibili) (i['id'] as String, '${i['titolo']} · ${app.cat.prezzo(i)}')],
+          onChanged: (v) => setState(() => immobile = v ?? ''),
+        ),
+      ));
+    }
+
+    // 3. Agente
     if (mostraColl) {
       steps.add(KeyedSubtree(
         key: _kColl,
         child: PStep(
           n: n++,
-          title: 'Con chi?',
+          title: 'Con quale agente?',
           child: AutoGrid(minWidth: 230, gap: 8, children: [
             POpt(title: 'Nessuna preferenza', sub: const Text('Il primo disponibile'), on: coll.isEmpty, onTap: () => setState(() {
               coll = '';
@@ -193,42 +223,31 @@ class _PrenotaPageState extends State<PrenotaPage> {
       ));
     }
 
-    // 3. Giorno
+    // 4. Giorno
     if (sv != null) {
       final libero = giorni.values.any((x) => x > 0);
-      final attesa = dati['listaAttesa'] == true;
       steps.add(KeyedSubtree(
         key: _kData,
         child: PStep(
           n: n++,
           title: 'Scegli il giorno',
           child: libero
-              ? Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  CalGrid(giorni: giorni, sel: data, onTap: (d) => setState(() {
-                    data = d;
-                    ora = '';
-                    _vai(_kOra);
-                  })),
-                  if (attesa)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 14),
-                      child: LinkBtn("Nessuna data ti va bene? Mettiti in lista d'attesa", onTap: () => apriListaAttesa(context, sv, coll, data, _colls)),
-                    ),
-                ])
-              : EmptyState(
+              ? CalGrid(giorni: giorni, sel: data, onTap: (d) => setState(() {
+                  data = d;
+                  ora = '';
+                  _vai(_kOra);
+                }))
+              : const EmptyState(
                   icon: 'calendar',
                   small: true,
                   text: 'Nessuna disponibilità nelle prossime settimane per questa scelta.',
-                  actions: [
-                    if (attesa) VButton("Nessuna data ti va bene? Mettiti in lista d'attesa", kind: BtnKind.primary, onPressed: () => apriListaAttesa(context, sv, coll, data, _colls)),
-                    const VButton('Contattaci', kind: BtnKind.outline, href: '#/p/contatti'),
-                  ],
+                  actions: [VButton('Contattaci', kind: BtnKind.outline, href: '#/p/contatti')],
                 ),
         ),
       ));
     }
 
-    // 4. Orario
+    // 5. Orario
     if (sv != null && data.isNotEmpty) {
       steps.add(KeyedSubtree(
         key: _kOra,
@@ -241,17 +260,12 @@ class _PrenotaPageState extends State<PrenotaPage> {
               ora = o;
               _vai(_kDati);
             })),
-            if (dati['listaAttesa'] == true)
-              Padding(
-                padding: const EdgeInsets.only(top: 14),
-                child: LinkBtn("Nessun orario ti va bene? Mettiti in lista d'attesa per questo giorno", onTap: () => apriListaAttesa(context, sv, coll, data, _colls)),
-              ),
           ]),
         ),
       ));
     }
 
-    // 5. Dati
+    // 6. Dati
     if (ora.isNotEmpty) {
       final inv = _tentato;
       steps.add(KeyedSubtree(
@@ -291,6 +305,7 @@ class _PrenotaPageState extends State<PrenotaPage> {
             ('Servizio', str(sv['nome'])),
             ('Durata', durata(intOf(sv['durata']))),
             ('Prezzo', prezzoServizio(sv['prezzo'])),
+            if (_visita(sv)) ('Immobile', str(App.read(context).repo.item(immobile)?['titolo'] ?? 'Da concordare')),
             if (mostraColl) ('Con', c != null ? str(c['nome']) : 'Nessuna preferenza'),
             ('Giorno', data.isEmpty ? '' : fmtDate(data)),
             ('Orario', ora),
@@ -329,6 +344,7 @@ class _Conferma extends StatelessWidget {
             const SizedBox(height: 20),
             Riep([
               ('Servizio', str(p['servizio'])),
+              ('Immobile', str(p['immobile'])),
               ('Quando', '${fmtDate(str(p['data']))}, ore ${p['ora']}'),
               ('Con', str(p['collaboratore'])),
               ('Dove', str(set['indirizzo'])),

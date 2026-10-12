@@ -1,4 +1,4 @@
-/// Parti riutilizzabili delle prenotazioni: calendario, orari, passaggi, lista d'attesa, file .ics.
+/// Parti riutilizzabili delle prenotazioni: calendario, orari, passaggi, file .ics.
 library;
 
 import 'dart:convert';
@@ -10,11 +10,7 @@ import '../../core/icons.dart';
 import '../../core/platform/browser.dart';
 import '../../core/theme.dart';
 import '../../core/util.dart';
-import '../../data/repository.dart';
 import '../../state/app_state.dart';
-import '../dialogs.dart';
-import '../forms_public.dart';
-import '../inputs.dart';
 import '../kit.dart';
 
 /// Riquadro di un passaggio numerato (.pstep)
@@ -28,7 +24,7 @@ class PStep extends StatelessWidget {
     final t = context.t;
     return Container(
       padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(color: t.surface, border: Border.all(color: t.moderno ? Colors.transparent : t.line), borderRadius: t.r, boxShadow: t.moderno ? t.shadow : null),
+      decoration: BoxDecoration(color: t.surface, border: Border.all(color: t.line), borderRadius: t.r),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Padding(
           padding: const EdgeInsets.only(bottom: 14),
@@ -67,7 +63,7 @@ class POpt extends StatelessWidget {
         decoration: BoxDecoration(
           color: on ? t.primarySoft : Colors.white,
           border: Border.all(color: on || h ? t.primary : t.line2, width: on ? 2.5 : 1.5),
-          borderRadius: BorderRadius.circular(t.minimal ? 0 : 12),
+          borderRadius: BorderRadius.circular(12),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, mainAxisSize: MainAxisSize.min, children: [
           Text(title, style: t.text(weight: FontWeight.w700, height: 1.35)),
@@ -91,7 +87,7 @@ class CalGrid extends StatelessWidget {
     if (date.isEmpty) return const SizedBox.shrink();
     final offset = (parseDate(date.first).weekday + 6) % 7;
     final cells = <Widget>[
-      for (final g in ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']) Center(child: Text(g.toUpperCase(), style: t.caps(size: 12, spacing: 0))),
+      for (final g in ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom']) Center(child: Text(g.toUpperCase(), style: t.caps(size: 12))),
       for (var i = 0; i < offset; i++) const SizedBox.shrink(),
       for (final d in date) _day(context, d, date.first),
     ];
@@ -121,12 +117,16 @@ class CalGrid extends StatelessWidget {
           decoration: BoxDecoration(
             color: on ? t.primary : (off ? Colors.transparent : Colors.white),
             border: Border.all(color: on || (h && !off) ? t.primary : (off ? Colors.transparent : t.line2), width: 1.5),
-            borderRadius: BorderRadius.circular(t.minimal ? 0 : 12),
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Text('${dt.day}', style: t.text(size: 16.3, weight: FontWeight.w700, color: on ? t.onPrimary : (off ? const Color(0xFFB7BCC3) : t.ink), height: 1.1)),
-            if (month != null) Text(month, style: t.text(size: 10.5, color: on ? t.onPrimary : t.muted, height: 1.1)),
-          ]),
+          // sui telefoni stretti la cella è piccola: numero e mese si rimpiccioliscono invece di uscire
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(mainAxisSize: MainAxisSize.min, children: [
+              Text('${dt.day}', style: t.text(size: 16.3, weight: FontWeight.w700, color: on ? t.onPrimary : (off ? const Color(0xFFB7BCC3) : t.ink), height: 1.1)),
+              if (month != null) Text(month, style: t.text(size: 10.5, color: on ? t.onPrimary : t.muted, height: 1.1)),
+            ]),
+          ),
         ),
       ),
     );
@@ -174,96 +174,11 @@ class OraChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: on ? t.primary : Colors.white,
           border: Border.all(color: on || h ? t.primary : t.line2, width: 1.5),
-          borderRadius: BorderRadius.circular(t.minimal ? 0 : 10),
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Text(ora, textAlign: TextAlign.center, style: t.text(weight: FontWeight.w700, color: on ? t.onPrimary : t.ink, height: 1.2)),
       ),
     );
-  }
-}
-
-/// Lista d'attesa: il cliente lascia i suoi dati per un giorno e una fascia oraria.
-void apriListaAttesa(BuildContext context, Json servizio, String coll, String data, List<Json> collaboratori) {
-  final s = App.read(context);
-  final cn = str(collaboratori.where((c) => c['id'] == coll).firstOrNull?['nome']);
-  showVModal(context, "Lista d'attesa", (ctx) => _AttesaForm(state: s, servizio: servizio, coll: coll, data: data, collNome: cn));
-}
-
-class _AttesaForm extends StatefulWidget {
-  final AppState state;
-  final Json servizio;
-  final String coll, data, collNome;
-  const _AttesaForm({required this.state, required this.servizio, required this.coll, required this.data, required this.collNome});
-  @override
-  State<_AttesaForm> createState() => _AttesaFormState();
-}
-
-class _AttesaFormState extends State<_AttesaForm> {
-  late String data = widget.data;
-  var fascia = 'qualsiasi';
-  final nome = TextEditingController(), tel = TextEditingController(), email = TextEditingController(), note = TextEditingController();
-  var privacy = false, tentato = false, fatto = false;
-  String? err;
-
-  Future<void> _invia() async {
-    setState(() => tentato = true);
-    if (data.isEmpty || nome.text.trim().isEmpty || tel.text.trim().isEmpty || !privacy) {
-      setState(() => err = "Compila giorno, nome e telefono e accetta l'informativa.");
-      return;
-    }
-    try {
-      await widget.state.repo.attCrea({
-        'data': data, 'fascia': fascia, 'nome': nome.text, 'telefono': tel.text, 'email': email.text, 'note': note.text,
-        'servizio': widget.servizio['id'], 'collaboratore': widget.coll,
-      });
-      setState(() => fatto = true);
-    } on AppError catch (e) {
-      setState(() => err = e.message);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final t = context.t;
-    if (fatto) return const MsgOk("Sei in lista d'attesa!", text: 'Ti contatteremo appena si libera un posto.');
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text.rich(
-        TextSpan(children: [
-          const TextSpan(text: 'Se si libera un posto per '),
-          TextSpan(text: str(widget.servizio['nome']), style: const TextStyle(fontWeight: FontWeight.w700)),
-          if (widget.collNome.isNotEmpty) TextSpan(text: ' con ${widget.collNome}'),
-          const TextSpan(text: ' ti contattiamo noi.'),
-        ]),
-        style: t.text(),
-      ),
-      const SizedBox(height: 14),
-      TwoCols(
-        FieldLabel('Giorno desiderato', child: DateInput(value: data, min: oggi(), onChanged: (v) => setState(() => data = v), invalid: tentato && data.isEmpty)),
-        FieldLabel(
-          'Fascia oraria',
-          child: VSelect<String>(
-            value: fascia,
-            items: const [('qualsiasi', 'Qualsiasi orario'), ('mattina', 'Mattina'), ('pomeriggio', 'Pomeriggio'), ('sera', 'Sera')],
-            onChanged: (v) => setState(() => fascia = v ?? 'qualsiasi'),
-          ),
-        ),
-      ),
-      const SizedBox(height: 12),
-      FieldLabel('Nome e cognome', child: VInput(controller: nome, invalid: tentato && nome.text.trim().isEmpty)),
-      const SizedBox(height: 12),
-      TwoCols(
-        FieldLabel('Telefono', child: VInput(controller: tel, keyboard: TextInputType.phone, invalid: tentato && tel.text.trim().isEmpty)),
-        FieldLabel('Email (facoltativa)', child: VInput(controller: email, keyboard: TextInputType.emailAddress)),
-      ),
-      const SizedBox(height: 12),
-      FieldLabel('Note', child: VInput(controller: note, maxLength: 500, hint: 'es. vado bene anche con breve preavviso')),
-      const SizedBox(height: 12),
-      PrivacyCheck(value: privacy, onChanged: (v) => setState(() => privacy = v), scopo: 'per essere ricontattato', invalid: tentato && !privacy),
-      const SizedBox(height: 8),
-      FormError(err),
-      const SizedBox(height: 8),
-      VButton("Mettimi in lista d'attesa", icon: 'clock', kind: BtnKind.primary, block: true, onAsync: _invia),
-    ]);
   }
 }
 

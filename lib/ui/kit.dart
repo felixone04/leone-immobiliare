@@ -169,24 +169,11 @@ class _VButtonState extends State<VButton> {
   Widget build(BuildContext context) {
     final t = context.t;
     var bg = t.surface, fg = t.ink, border = _hover ? t.ink2 : t.line2;
-    Gradient? grad;
-    List<BoxShadow>? shadow;
     switch (widget.kind) {
       case BtnKind.primary:
-        bg = t.btnPrimaryBg;
-        fg = t.btnPrimaryFg;
-        if (t.minimal && _hover) {
-          bg = t.primary;
-          fg = t.onPrimary;
-        } else if (_hover) {
-          bg = t.primaryDark;
-        }
+        bg = _hover ? t.primaryDark : t.primary;
+        fg = t.onPrimary;
         border = bg;
-        if (t.moderno) {
-          grad = LinearGradient(colors: [t.primary, mix(t.primary, .7, t.accent)], transform: const GradientRotation(.5));
-          shadow = [BoxShadow(color: t.primary.withValues(alpha: .45), blurRadius: 20, spreadRadius: -10, offset: const Offset(0, 8))];
-          border = Colors.transparent;
-        }
       case BtnKind.accent:
         bg = _hover ? Color.lerp(t.accent, Colors.white, .06)! : t.accent;
         fg = t.onAccent;
@@ -207,23 +194,14 @@ class _VButtonState extends State<VButton> {
     }
     if (widget.danger) fg = VTheme.danger;
     final sz = switch (widget.size) { BtnSize.sm => 13.8, BtnSize.md => 15.2, BtnSize.lg => 16.0 };
-    var fontSize = sz;
-    var pad = switch (widget.size) {
+    final fontSize = sz;
+    final pad = switch (widget.size) {
       BtnSize.sm => EdgeInsets.symmetric(horizontal: sz * .85, vertical: sz * .42),
       BtnSize.md => EdgeInsets.symmetric(horizontal: sz * 1.15, vertical: sz * .66),
       BtnSize.lg => EdgeInsets.symmetric(horizontal: sz * 1.5, vertical: sz * .85),
     };
-    var label = widget.label;
-    var weight = FontWeight.w600;
-    var spacing = 0.0;
-    if (t.elegante) {
-      label = label.toUpperCase();
-      fontSize = widget.size == BtnSize.sm ? 11.5 : 12.8;
-      weight = FontWeight.w500;
-      spacing = fontSize * .1;
-      pad = widget.size == BtnSize.sm ? EdgeInsets.symmetric(horizontal: fontSize * 1.1, vertical: fontSize * .6) : EdgeInsets.symmetric(horizontal: fontSize * 1.6, vertical: fontSize * .95);
-    }
-    final style = t.text(size: fontSize, weight: weight, color: _busy ? Colors.transparent : fg, height: 1.3, spacing: spacing);
+    final label = widget.label;
+    final style = t.text(size: fontSize, weight: FontWeight.w600, color: _busy ? Colors.transparent : fg, height: 1.3);
     final iconSize = fontSize * 1.15;
     Widget content = Row(
       mainAxisSize: widget.block ? MainAxisSize.max : MainAxisSize.min,
@@ -253,11 +231,9 @@ class _VButtonState extends State<VButton> {
             duration: const Duration(milliseconds: 150),
             padding: pad,
             decoration: BoxDecoration(
-              color: grad == null ? bg : null,
-              gradient: grad,
+              color: bg,
               borderRadius: BorderRadius.circular(radius),
               border: Border.all(color: border),
-              boxShadow: shadow,
             ),
             child: content,
           ),
@@ -360,8 +336,8 @@ class VBadge extends StatelessWidget {
     final t = context.t;
     Color bg, fg;
     if (!soft) {
-      bg = t.minimal ? const Color(0xFF111111) : t.primary;
-      fg = t.minimal ? Colors.white : t.onPrimary;
+      bg = t.primary;
+      fg = t.onPrimary;
     } else if (onImage) {
       bg = Colors.white.withValues(alpha: .94);
       fg = t.ink;
@@ -369,11 +345,10 @@ class VBadge extends StatelessWidget {
       bg = t.primarySoft;
       fg = t.primary;
     }
-    final txt = t.elegante ? text.toUpperCase() : text;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(t.pill)),
-      child: Text(txt, style: t.text(size: t.elegante ? 10.9 : 12.2, weight: FontWeight.w700, color: fg, height: 1.25, spacing: t.elegante ? .9 : .12)),
+      child: Text(text, style: t.text(size: 12.2, weight: FontWeight.w700, color: fg, height: 1.25, spacing: .12)),
     );
   }
 }
@@ -398,7 +373,7 @@ class Pill extends StatelessWidget {
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(t.pill)),
       child: Row(mainAxisSize: MainAxisSize.min, children: [
         if (icon != null) ...[VIcon(icon!, size: 13, color: fg), const SizedBox(width: 4)],
-        Text(t.elegante ? text.toUpperCase() : text, style: t.text(size: t.elegante ? 10.9 : 12.5, weight: FontWeight.w700, color: fg, height: 1.3, spacing: t.elegante ? .9 : null)),
+        Text(text, style: t.text(size: 12.5, weight: FontWeight.w700, color: fg, height: 1.3)),
       ]),
     );
   }
@@ -426,17 +401,18 @@ class Ribbon extends StatelessWidget {
   }
 }
 
-/// .tag-promo
-class TagPromo extends StatelessWidget {
+/// Etichetta di un annuncio: Esclusiva (nero), Nuovo (colore principale), Prezzo ribassato (rosso).
+class EtichettaTag extends StatelessWidget {
   final String text;
-  const TagPromo(this.text, {super.key});
+  const EtichettaTag(this.text, {super.key});
   @override
   Widget build(BuildContext context) {
     final t = context.t;
+    final bg = switch (text) { 'Esclusiva' => t.accent, 'Prezzo ribassato' => VTheme.danger, _ => t.primary };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-      decoration: BoxDecoration(color: mix(t.accent, .2, Colors.white), borderRadius: BorderRadius.circular(t.pill)),
-      child: Text(text.toUpperCase(), style: t.text(size: 11.8, weight: FontWeight.w800, color: mix(t.accent, .55, Colors.black), spacing: .6, height: 1.4)),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+      decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(t.pill)),
+      child: Text(text.toUpperCase(), style: t.text(size: 11.2, weight: FontWeight.w800, color: contrastOn(bg), spacing: .6, height: 1.3)),
     );
   }
 }
@@ -560,30 +536,21 @@ class PageHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final center = t.elegante;
-    Gradient? grad;
-    if (t.moderno) grad = LinearGradient(colors: [t.primary, mix(t.primary, .55, t.accent)], transform: const GradientRotation(.5));
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(color: t.heroBg, gradient: grad),
+      decoration: BoxDecoration(color: t.primary),
       clipBehavior: Clip.hardEdge,
       child: Stack(children: [
-        if (t.leone)
-          Positioned(right: -60, bottom: -6, child: RoofMark(width: 620, height: 190, color: Colors.white.withValues(alpha: .1)))
-        else if (!t.minimal)
-          Positioned(
-            right: -80,
-            top: -120,
-            child: Container(width: 360, height: 360, decoration: BoxDecoration(shape: BoxShape.circle, color: t.accent.withValues(alpha: .16))),
-          ),
+        // il tetto del logo, grande e in trasparenza
+        Positioned(right: -60, bottom: -6, child: RoofMark(width: 620, height: 190, color: Colors.white.withValues(alpha: .1))),
         Contained(
           child: Padding(
             padding: slim ? const EdgeInsets.only(top: 32, bottom: 28) : const EdgeInsets.only(top: 44, bottom: 40),
             child: Column(
-              crossAxisAlignment: center ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Crumbs([('Home', '/'), ...crumbs, (title, null)], light: true, center: center),
-                Text(title, textAlign: center ? TextAlign.center : TextAlign.start, style: t.title(size: t.h1(context), color: t.onHero)),
+                Crumbs([('Home', '/'), ...crumbs, (title, null)], light: true),
+                Text(title, style: t.title(size: t.h1(context), color: t.onPrimary)),
               ],
             ),
           ),
@@ -595,13 +562,13 @@ class PageHero extends StatelessWidget {
 
 class Crumbs extends StatelessWidget {
   final List<(String, String?)> items;
-  final bool light, center;
-  const Crumbs(this.items, {super.key, this.light = false, this.center = false});
+  final bool light;
+  const Crumbs(this.items, {super.key, this.light = false});
   @override
   Widget build(BuildContext context) {
     final t = context.t;
-    final base = light ? t.onHero.withValues(alpha: .75) : t.muted;
-    final cur = light ? t.onHero : t.ink;
+    final base = light ? t.onPrimary.withValues(alpha: .75) : t.muted;
+    final cur = light ? t.onPrimary : t.ink;
     final kids = <Widget>[];
     for (var i = 0; i < items.length; i++) {
       final (label, href) = items[i];
@@ -617,7 +584,7 @@ class Crumbs extends StatelessWidget {
     }
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
-      child: Wrap(alignment: center ? WrapAlignment.center : WrapAlignment.start, crossAxisAlignment: WrapCrossAlignment.center, children: kids),
+      child: Wrap(crossAxisAlignment: WrapCrossAlignment.center, children: kids),
     );
   }
 }
@@ -631,33 +598,31 @@ class SectionHead extends StatelessWidget {
   Widget build(BuildContext context) {
     final t = context.t;
     if (title == null && subtitle == null && trailing == null && subtitleWidget == null) return const SizedBox.shrink();
-    final center = t.elegante;
     final txt = Column(
-      crossAxisAlignment: center ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (t.leone && title != null && title!.isNotEmpty) Padding(padding: const EdgeInsets.only(bottom: 12), child: RoofMark(width: 54, height: 16, color: t.primary)),
-        if (title != null && title!.isNotEmpty) Text(title!, textAlign: center ? TextAlign.center : null, style: t.title(size: t.h2(context))),
-        if (center && title != null && title!.isNotEmpty) Container(width: 48, height: 1, color: t.accent, margin: const EdgeInsets.only(top: 14)),
+        if (title != null && title!.isNotEmpty) ...[
+          Padding(padding: const EdgeInsets.only(bottom: 12), child: RoofMark(width: 54, height: 16, color: t.primary)),
+          Text(title!, style: t.title(size: t.h2(context))),
+        ],
         if (subtitle != null && subtitle!.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 6),
-            child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 560), child: Text(subtitle!, textAlign: center ? TextAlign.center : null, style: t.text(color: t.muted))),
+            child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 560), child: Text(subtitle!, style: t.text(color: t.muted))),
           ),
         if (subtitleWidget != null) Padding(padding: const EdgeInsets.only(top: 6), child: subtitleWidget!),
       ],
     );
     return Padding(
       padding: const EdgeInsets.only(bottom: 28),
-      child: center
-          ? Center(child: Column(children: [txt, if (trailing != null) Padding(padding: const EdgeInsets.only(top: 16), child: trailing!)]))
-          : Wrap(
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.end,
-              spacing: 24,
-              runSpacing: 16,
-              children: [txt, ?trailing],
-            ),
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.end,
+        spacing: 24,
+        runSpacing: 16,
+        children: [txt, ?trailing],
+      ),
     );
   }
 }

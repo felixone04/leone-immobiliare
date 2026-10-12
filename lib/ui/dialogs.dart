@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import '../core/icons.dart';
 import '../core/theme.dart';
 import '../state/app_state.dart';
-import 'inputs.dart';
 import 'kit.dart';
 
 /// Finestra modale (.modal): titolo, pulsante di chiusura, contenuto scorrevole.
@@ -81,26 +80,6 @@ Future<bool> confirmDialog(BuildContext context, String text, {String ok = 'Conf
     ]),
   );
   return r ?? false;
-}
-
-/// Richiesta di un testo (null se annullata).
-Future<String?> promptDialog(BuildContext context, String text, {String initial = '', String ok = 'Conferma'}) {
-  final c = TextEditingController(text: initial);
-  return showVModal<String>(
-    context,
-    'Conferma',
-    (ctx) => Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(text, style: ctx.t.text()),
-      const SizedBox(height: 12),
-      VInput(controller: c, autofocus: true, onSubmitted: (_) => Navigator.of(ctx).pop(c.text)),
-      const SizedBox(height: 20),
-      Row(mainAxisAlignment: MainAxisAlignment.end, children: [
-        VButton('Annulla', kind: BtnKind.ghost, onPressed: () => Navigator.of(ctx).pop()),
-        const SizedBox(width: 8),
-        VButton(ok, kind: BtnKind.primary, onPressed: () => Navigator.of(ctx).pop(c.text)),
-      ]),
-    ]),
-  );
 }
 
 /// Area notifiche in basso al centro (.toasts)

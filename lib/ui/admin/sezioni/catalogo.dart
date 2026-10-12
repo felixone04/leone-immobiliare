@@ -7,11 +7,13 @@ import 'package:go_router/go_router.dart';
 import '../../../core/icons.dart';
 import '../../../core/theme.dart';
 import '../../../core/util.dart';
+import '../../../data/repository.dart';
 import '../../../state/app_state.dart';
 import '../../dialogs.dart';
 import '../../kit.dart';
 import '../admin_common.dart';
 import '../form/vform.dart';
+import '../scheda_pdf.dart';
 
 class CatalogoAdmin extends StatelessWidget {
   final List<String> rest;
@@ -78,9 +80,15 @@ class _ElencoState extends State<_Elenco> {
               ),
               Row(mainAxisSize: MainAxisSize.min, mainAxisAlignment: MainAxisAlignment.end, children: [
                 IconBtn('eye', tooltip: 'Vedi sul sito', onPressed: () => openLink(context, '#/scheda/${i['id']}', newTab: true)),
+                IconBtn('printer', tooltip: 'Scheda PDF per la vetrina', onPressed: () => s.run(() => apriSchedaPdf(s.repo, i))),
                 IconBtn('edit', tooltip: 'Modifica', onPressed: () => context.go('/admin/catalogo/${i['id']}')),
                 IconBtn('copy', tooltip: 'Duplica', onPressed: () async {
-                  final copia = cloneJson(i)..remove('id')..remove('creato');
+                  final copia = cloneJson(i)
+                    ..remove('id')
+                    ..remove('creato')
+                    ..remove('prezzoPrecedente')
+                    ..remove('disponibileDal')
+                    ..remove('chiusoIl');
                   copia['titolo'] = '${i['titolo']} (copia)';
                   copia['evidenza'] = false;
                   if (await s.run(() => s.repo.saveItem(copia)) != null) s.toast('Duplicato creato');
@@ -148,10 +156,14 @@ class _ItemEditorState extends State<ItemEditor> {
         sub: item != null ? 'Modifica ${sch.singolare.toLowerCase()}' : 'Compila i campi: quelli con * sono obbligatori',
         back: (sch.plurale, '/admin/catalogo'),
         actions: [
-          if (item != null) VButton('Anteprima', icon: 'eye', kind: BtnKind.ghost, onPressed: () => openLink(context, '#/scheda/${item!['id']}', newTab: true)),
+          if (item != null) ...[
+            VButton('Anteprima', icon: 'eye', kind: BtnKind.ghost, onPressed: () => openLink(context, '#/scheda/${item!['id']}', newTab: true)),
+            VButton('Scheda vetrina (PDF)', icon: 'printer', onAsync: () => s.run(() => apriSchedaPdf(s.repo, item!))),
+          ],
           salva,
         ],
       ),
+      if (item != null) _Interessati(item!),
       Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: Wrap(spacing: 8, runSpacing: 8, children: [
@@ -182,5 +194,61 @@ class _ItemEditorState extends State<ItemEditor> {
         right: [const VButton('Annulla', kind: BtnKind.ghost, href: '#/admin/catalogo'), salva],
       ),
     ]);
+  }
+}
+
+/// Abbinamento automatico: clienti con una ricerca salvata compatibile e quanti lo hanno tra i preferiti.
+class _Interessati extends StatelessWidget {
+  final Json item;
+  const _Interessati(this.item);
+  @override
+  Widget build(BuildContext context) {
+    final s = App.of(context);
+    final t = context.t;
+    final match = s.repo.interessatiA(item);
+    final clienti = {for (final (c, _, _) in match) c['id'] as String};
+    final pref = s.repo.preferitiCount(item['id'] as String);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 20),
+      child: CardBox(
+        child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+          Wrap(spacing: 12, runSpacing: 10, alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, children: [
+            BoxTitle('Clienti interessati (${clienti.length})', icon: 'users', size: 17.6),
+            if (clienti.isNotEmpty)
+              VButton('Invia questo immobile ai clienti interessati', icon: 'send', size: BtnSize.sm, kind: BtnKind.primary, href: '#/admin/posta/nuova?immobili=${item['id']}&clienti=${clienti.join(',')}'),
+          ]),
+          Text(
+            [
+              if (pref > 0) '${pref == 1 ? 'Un cliente lo ha' : '$pref clienti lo hanno'} tra i preferiti.',
+              'Corrisponde ad almeno il 70% di quello che cercano, con prezzo al massimo il 10% sopra il budget.',
+            ].join(' '),
+            style: t.text(size: 14.1, color: t.muted),
+          ),
+          const Gap(8),
+          if (match.isEmpty)
+            Text('Nessuna ricerca salvata corrisponde a questo immobile, per ora.', style: t.text(size: 14.4))
+          else
+            for (final (c, r, a) in match.take(8))
+              Hover(
+                onTap: () => context.go('/admin/clienti/${c['id']}'),
+                builder: (_, h) => Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(color: h ? t.tint2 : null, borderRadius: t.rSm),
+                  child: Row(children: [
+                    VIcon('user', color: t.primary),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(str(c['nome']), style: t.text(weight: FontWeight.w600, height: 1.35)),
+                        Text('«${r['nome']}»${a.mancano.isEmpty ? '' : ' · non corrisponde: ${a.mancano.join(', ')}'}', maxLines: 2, overflow: TextOverflow.ellipsis, style: t.text(size: 13.1, color: t.muted, height: 1.35)),
+                      ]),
+                    ),
+                    Pill('${a.percentuale}%', tone: a.percentuale == 100 ? 'ok' : 'plain'),
+                  ]),
+                ),
+              ),
+        ]),
+      ),
+    );
   }
 }

@@ -8,8 +8,11 @@ import '../../core/icons.dart';
 import '../../core/markdown.dart';
 import '../../core/theme.dart';
 import '../../core/util.dart';
+import '../../data/abbinamento.dart';
 import '../../data/preset.dart';
+import '../../data/repository.dart';
 import '../../state/app_state.dart';
+import '../clienti/account.dart';
 import '../forms_public.dart';
 import '../kit.dart';
 import '../map/vmap.dart';
@@ -48,7 +51,7 @@ class DetailPage extends StatelessWidget {
     final g = cat.geo(item);
     final nastro = cat.nastro(item);
     final mostraPrivati = cat.mostraPrivati(item);
-    final et = cat.etichetta(item);
+    final et = cat.etichette(item);
     final set = s.settings;
 
     // Caratteristiche principali
@@ -92,8 +95,9 @@ class DetailPage extends StatelessWidget {
       ));
     }
     final tel = telHref(str(set['telefono'])), wa = onlyDigits(str(set['whatsapp']));
-    final msg = sch.messaggio?.call(item) ?? 'Buongiorno, vorrei ricevere informazioni su «${item['titolo']}»${str(item['rif']).isNotEmpty ? ' (rif. ${item['rif']})' : ''}.';
-    final oggetto = '${sch.azione != null ? 'Richiesta' : 'Richiesta informazioni'}: ${item['titolo']}${str(item['rif']).isNotEmpty ? ' (rif. ${item['rif']})' : ''}';
+    final rif = str(item['rif']).isNotEmpty ? ' (rif. ${item['rif']})' : '';
+    final msg = 'Buongiorno, vorrei ricevere informazioni su «${item['titolo']}»$rif.';
+    final oggetto = 'Richiesta informazioni: ${item['titolo']}$rif';
     final wide = context.vw > 1000;
 
     /* ---------- Colonna principale ---------- */
@@ -162,7 +166,7 @@ class DetailPage extends StatelessWidget {
       Wrap(spacing: 6, runSpacing: 6, crossAxisAlignment: WrapCrossAlignment.center, children: [
         for (var i = 0; i < cd.badge.length; i++)
           if (str(item[cd.badge[i]]).isNotEmpty) VBadge(str(item[cd.badge[i]]), soft: i > 0, onImage: false),
-        if (et.isNotEmpty) TagPromo(et),
+        for (final e in et) EtichettaTag(e),
       ]),
       const SizedBox(height: 12),
       Text(str(item['titolo']), style: t.title(size: t.h1(context))),
@@ -181,8 +185,8 @@ class DetailPage extends StatelessWidget {
                   width: 42,
                   height: 42,
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(color: t.minimal ? const Color(0xFF111111) : t.primarySoft, borderRadius: BorderRadius.circular(t.minimal ? 0 : 12)),
-                  child: VIcon(p.icona, size: 22, color: t.minimal ? Colors.white : t.primary),
+                  decoration: BoxDecoration(color: t.primarySoft, borderRadius: BorderRadius.circular(12)),
+                  child: VIcon(p.icona, size: 22, color: t.primary),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -199,16 +203,22 @@ class DetailPage extends StatelessWidget {
 
     /* ---------- Colonna laterale ---------- */
     final logo = safeSrc(set['logo']);
-    final prenotabile = s.modulo('prenotazioni') && intOf(item['durata']) > 0 && item['prenotabile'] != false;
+    // visita a questo immobile: il servizio "visita" delle prenotazioni, con l'immobile già scelto
+    final visita = s.modulo('prenotazioni') && immobileDisponibile(item)
+        ? s.repo.prenServizi().values.where((x) => norm(x['nome']).contains('visita')).firstOrNull
+        : null;
     final side = Container(
       padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(color: t.surface, border: Border.all(color: t.moderno ? Colors.transparent : t.line), borderRadius: t.r, boxShadow: t.shadow),
+      decoration: BoxDecoration(color: t.surface, border: Border.all(color: t.line), borderRadius: t.r, boxShadow: t.shadow),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        PriceText(item, size: 32),
+        Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Expanded(child: PriceText(item, size: 32)),
+          PreferitoBtn(item['id'] as String, size: 44),
+        ]),
         if (extra.isNotEmpty) Padding(padding: const EdgeInsets.only(top: 12), child: Column(children: extra)),
-        if (prenotabile) ...[
+        if (visita != null) ...[
           const SizedBox(height: 16),
-          VButton('Prenota online', icon: 'calendar', kind: BtnKind.accent, size: BtnSize.lg, block: true, href: '#/prenota?servizio=${item['id']}'),
+          VButton('Prenota una visita', icon: 'calendar', kind: BtnKind.accent, size: BtnSize.lg, block: true, href: '#/prenota?servizio=${visita['id']}&immobile=${item['id']}'),
         ],
         Container(
           margin: const EdgeInsets.symmetric(vertical: 20),
@@ -232,13 +242,13 @@ class DetailPage extends StatelessWidget {
             ]),
           ]),
         ),
-        Padding(padding: const EdgeInsets.only(bottom: 12), child: Text(sch.azione ?? 'Richiedi informazioni', style: t.title(size: 17.6, weight: FontWeight.w700))),
-        ContactForm(oggetto: oggetto, messaggio: msg, pagina: '#/scheda/${item['id']}'),
+        Padding(padding: const EdgeInsets.only(bottom: 12), child: Text('Richiedi informazioni', style: t.title(size: 17.6, weight: FontWeight.w700))),
+        ContactForm(oggetto: oggetto, messaggio: msg, pagina: '#/scheda/${item['id']}', immobile: item['id'] as String),
       ]),
     );
 
     final simili = cat.simili(item);
-    return PageScroll(children: [
+    return _ContaVista(id: id, child: PageScroll(children: [
       Contained(
         child: Padding(
           padding: const EdgeInsets.only(top: 24, bottom: 72),
@@ -246,7 +256,7 @@ class DetailPage extends StatelessWidget {
             Crumbs([('Home', '/'), (sch.plurale, '/catalogo'), (str(item['titolo']), null)]),
             if (fotos.isNotEmpty)
               _Gallery(fotos: fotos, nastro: nastro, titolo: str(item['titolo']))
-            else if (!sch.isListino)
+            else
               Container(height: 260, margin: const EdgeInsets.only(bottom: 32), decoration: BoxDecoration(borderRadius: t.r), clipBehavior: Clip.antiAlias, child: PlaceholderIcon(sch.icona)),
             if (wide)
               Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -263,8 +273,29 @@ class DetailPage extends StatelessWidget {
           ]),
         ),
       ),
-    ]);
+    ]));
   }
+}
+
+/// Conta una visita alla scheda (per le statistiche), una volta per apertura; non conta l'agenzia collegata.
+class _ContaVista extends StatefulWidget {
+  final String id;
+  final Widget child;
+  const _ContaVista({required this.id, required this.child});
+  @override
+  State<_ContaVista> createState() => _ContaVistaState();
+}
+
+class _ContaVistaState extends State<_ContaVista> {
+  @override
+  void initState() {
+    super.initState();
+    final s = App.read(context);
+    if (!s.auth.isAdmin) s.repo.registraVista(widget.id);
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 /// Galleria con fino a 5 foto (.gallery g1…g5)

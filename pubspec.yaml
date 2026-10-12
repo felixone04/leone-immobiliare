@@ -24,6 +24,7 @@ dependencies:
   image: ^4.10.1
   file_picker: ^13.1.0
   web: ^1.1.1
+  pdf: ^3.13.1
 
 dev_dependencies:
   flutter_test:
@@ -38,20 +39,10 @@ flutter:
     - assets/foto/
     - assets/
 
-  # Caratteri dei temi grafici inclusi nell'app: funzionano anche senza internet
+  # Caratteri inclusi nell'app (funzionano anche senza internet):
+  # Inter per i testi, Arimo (metriche di Arial, come "Leone" nel logo) per i titoli,
+  # Jost per le etichette in maiuscolo (come "IMMOBILIARE" nel logo).
   fonts:
-    - family: PlusJakartaSans
-      fonts:
-        - asset: assets/fonts/PlusJakartaSans-400.ttf
-          weight: 400
-        - asset: assets/fonts/PlusJakartaSans-500.ttf
-          weight: 500
-        - asset: assets/fonts/PlusJakartaSans-600.ttf
-          weight: 600
-        - asset: assets/fonts/PlusJakartaSans-700.ttf
-          weight: 700
-        - asset: assets/fonts/PlusJakartaSans-800.ttf
-          weight: 800
     - family: Inter
       fonts:
         - asset: assets/fonts/Inter-400.ttf
@@ -64,21 +55,9 @@ flutter:
           weight: 700
         - asset: assets/fonts/Inter-800.ttf
           weight: 800
-    - family: SpaceGrotesk
+    - family: Arial
       fonts:
-        - asset: assets/fonts/SpaceGrotesk-500.ttf
-          weight: 500
-        - asset: assets/fonts/SpaceGrotesk-600.ttf
-          weight: 600
-        - asset: assets/fonts/SpaceGrotesk-700.ttf
-          weight: 700
-    - family: CormorantGaramond
-      fonts:
-        - asset: assets/fonts/CormorantGaramond-500.ttf
-          weight: 500
-        - asset: assets/fonts/CormorantGaramond-600.ttf
-          weight: 600
-        - asset: assets/fonts/CormorantGaramond-700.ttf
+        - asset: assets/fonts/Arimo-700.ttf
           weight: 700
     - family: Jost
       fonts:
@@ -88,22 +67,3 @@ flutter:
           weight: 500
         - asset: assets/fonts/Jost-600.ttf
           weight: 600
-    # Sostituti liberi (stesse metriche) dei caratteri usati nel logo SVG: Georgia e Arial
-    - family: Georgia
-      fonts:
-        - asset: assets/fonts/Gelasio-700.ttf
-          weight: 700
-    - family: Arial
-      fonts:
-        - asset: assets/fonts/Arimo-700.ttf
-          weight: 700
-    - family: Sora
-      fonts:
-        - asset: assets/fonts/Sora-400.ttf
-          weight: 400
-        - asset: assets/fonts/Sora-600.ttf
-          weight: 600
-        - asset: assets/fonts/Sora-700.ttf
-          weight: 700
-        - asset: assets/fonts/Sora-800.ttf
-          weight: 800

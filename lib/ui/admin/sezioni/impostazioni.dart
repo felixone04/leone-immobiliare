@@ -24,14 +24,8 @@ List<FieldDef> settingsDefs() {
         const FieldDef('logo', 'Logo', type: 'image', wide: true, png: true, max: 800, hint: 'Consigliato PNG con sfondo trasparente, orizzontale.'),
         const FieldDef('logoAltezza', 'Altezza del logo', type: 'number', unit: 'pixel', min: 24, step: 1),
         const FieldDef('mostraNome', 'Mostra il nome accanto al logo', type: 'bool'),
-        const FieldDef('colorePrimario', 'Colore principale', type: 'color'),
-        const FieldDef('coloreAccento', 'Colore secondario (pulsanti in evidenza)', type: 'color'),
-        FieldDef('tema', 'Tema grafico',
-            type: 'select',
-            noEmpty: true,
-            wide: true,
-            options: [for (final e in kTemi.entries) Opt(e.key, '${e.value.nome} — ${e.value.desc}')],
-            hint: 'Cambia caratteri, forme e stile del sito. I colori restano quelli scelti qui sopra.'),
+        const FieldDef('colorePrimario', 'Colore principale', type: 'color', hint: "L'azzurro del logo: #0189EE"),
+        const FieldDef('coloreAccento', 'Colore secondario (pulsanti in evidenza)', type: 'color', hint: 'Il nero del logo: #0B0D10'),
       ]
     ),
     (
@@ -40,6 +34,8 @@ List<FieldDef> settingsDefs() {
         FieldDef('telefono', 'Telefono', type: 'tel'),
         FieldDef('whatsapp', 'Numero WhatsApp', type: 'tel', hint: 'Con prefisso internazionale, es. 393331234567'),
         FieldDef('email', 'Email', type: 'email', hint: 'Indirizzo mostrato ai visitatori'),
+        FieldDef('emailAvvisi', 'Email per gli avvisi', type: 'email', hint: 'Dove arrivano gli avvisi di nuovi messaggi e prenotazioni. Se vuoto si usa l\'email qui sopra'),
+        FieldDef('urlSito', 'Indirizzo del sito online', type: 'url', placeholder: 'https://felixone04.github.io/leone-immobiliare/', hint: 'Usato nei link delle email e nel QR code delle schede in vetrina'),
         FieldDef('piva', 'Partita IVA'),
         FieldDef('indirizzo', 'Indirizzo della sede', wide: true),
         FieldDef('orari', 'Orari di apertura', type: 'textarea', rows: 3, wide: true),
@@ -74,7 +70,7 @@ class ImpostazioniAdmin extends StatefulWidget {
 
 class _ImpostazioniAdminState extends State<ImpostazioniAdmin> {
   late final s = App.read(context);
-  late final ctrl = FormCtrl(settingsDefs(), {...s.settings, 'tema': s.settings['tema'] ?? 'leone'});
+  late final ctrl = FormCtrl(settingsDefs(), s.settings);
   late Map<String, bool> moduli = s.repo.moduliBase;
   final _att = TextEditingController(), _nuova = TextEditingController(), _nuova2 = TextEditingController();
   String? _pwErr;

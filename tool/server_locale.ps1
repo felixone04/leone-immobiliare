@@ -16,7 +16,7 @@ $mime = @{
     '.html' = 'text/html; charset=utf-8'; '.js' = 'text/javascript; charset=utf-8'; '.mjs' = 'text/javascript; charset=utf-8'
     '.json' = 'application/json'; '.wasm' = 'application/wasm'; '.css' = 'text/css'; '.png' = 'image/png'
     '.jpg' = 'image/jpeg'; '.jpeg' = 'image/jpeg'; '.svg' = 'image/svg+xml'; '.ttf' = 'font/ttf'; '.otf' = 'font/otf'
-    '.ico' = 'image/x-icon'; '.bin' = 'application/octet-stream'; '.txt' = 'text/plain; charset=utf-8'
+    '.ico' = 'image/x-icon'; '.bin' = 'application/octet-stream'; '.txt' = 'text/plain; charset=utf-8'; '.pdf' = 'application/pdf'
 }
 
 $listener = [System.Net.HttpListener]::new()

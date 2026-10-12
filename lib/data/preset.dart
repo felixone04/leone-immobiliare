@@ -101,26 +101,19 @@ class KeySpec {
 
 class CardDef {
   final String titolo, prezzo;
-  final String? prezzoPieno, stile, raggruppa, etichetta, gratis, chips, estratto, nastroCampo;
+  final String? chips, nastroCampo;
   final List<String> badge, luogo, nastroNascondi;
   final List<SpecDef> specs;
-  final String Function(Json item)? prefisso, suffisso;
+  final String Function(Json item)? suffisso;
   const CardDef({
     this.titolo = 'titolo',
     this.prezzo = 'prezzo',
-    this.prezzoPieno,
-    this.stile,
-    this.raggruppa,
-    this.etichetta,
-    this.gratis,
     this.chips,
-    this.estratto,
     this.nastroCampo,
     this.badge = const [],
     this.luogo = const [],
     this.nastroNascondi = const [],
     this.specs = const [],
-    this.prefisso,
     this.suffisso,
   });
 }
@@ -133,14 +126,13 @@ class SchedaDef {
 
 class CatalogSchema {
   final String singolare, plurale, nuovo, icona;
-  final String? privacyGeo, azione;
+  final String? privacyGeo;
   final List<String> privacyCampi;
   final List<FieldDef> campi;
   final List<FilterDef> filtri;
   final List<SortDef> ordina;
   final CardDef card;
   final SchedaDef scheda;
-  final String Function(Json item)? messaggio;
 
   CatalogSchema({
     required this.singolare,
@@ -148,14 +140,12 @@ class CatalogSchema {
     required this.nuovo,
     required this.icona,
     this.privacyGeo,
-    this.azione,
     this.privacyCampi = const [],
     required List<FieldDef> campi,
     required this.filtri,
     required this.ordina,
     required this.card,
     required this.scheda,
-    this.messaggio,
   }) : campi = withGroups(campi);
 
   FieldDef? campo(String key) {
@@ -166,7 +156,6 @@ class CatalogSchema {
   }
 
   bool get hasGeo => campi.any((c) => c.type == 'geo');
-  bool get isListino => card.stile == 'listino';
 }
 
 class Preset {

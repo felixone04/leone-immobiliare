@@ -9,7 +9,6 @@ import '../../../core/util.dart';
 import '../../../state/app_state.dart';
 import '../../kit.dart';
 import '../admin_common.dart';
-import 'cassa.dart';
 
 class DashAdmin extends StatelessWidget {
   const DashAdmin({super.key});
@@ -24,7 +23,6 @@ class DashAdmin extends StatelessWidget {
     final disp = items.where((i) => cat.nastro(i).isEmpty).length, ev = items.where((i) => boolOf(i['evidenza'])).length;
     final senzaFoto = items.where((i) => cat.foto(i).isEmpty).length;
     final recenti = [...items]..sort((a, b) => intOf(b['modificato'] ?? b['creato']).compareTo(intOf(a['modificato'] ?? a['creato'])));
-    final cassa = s.modulo('prenotazioni') || s.modulo('fedelta') || s.modulo('pacchetti') || s.modulo('offerte');
 
     Widget stat(String n, String l, String href) => Hover(
           onTap: () => openLink(context, href),
@@ -92,6 +90,8 @@ class DashAdmin extends StatelessWidget {
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         const BoxTitle('Azioni rapide'),
         quick('image', 'Cambia logo e colori', '#/admin/impostazioni'),
+        quick('send', 'Proponi immobili ai clienti', '#/admin/posta/nuova'),
+        quick('chart', 'Statistiche degli annunci', '#/admin/statistiche'),
         quick('layers', 'Organizza la home page', '#/admin/widget'),
         quick('file', 'Modifica Chi siamo, Storia, Contatti…', '#/admin/pagine'),
         quick('download', 'Scarica un backup', '#/admin/backup'),
@@ -113,7 +113,47 @@ class DashAdmin extends StatelessWidget {
       const Gap(24),
       DaFare(s.repo.contatori()),
       if (senzaFoto > 0) AlertBox.text('$senzaFoto ${senzaFoto == 1 ? 'elemento è' : 'elementi sono'} senza foto.'),
-      AutoGrid(minWidth: 300, gap: 20, equalHeight: false, children: [if (cassa) const BoxCassa(), modificati, azioni]),
+      AutoGrid(minWidth: 300, gap: 20, equalHeight: false, children: [modificati, azioni]),
     ]);
+  }
+}
+
+/// Riquadro "Da fare": messaggi nuovi, prenotazioni da confermare, recensioni da approvare.
+class DaFare extends StatelessWidget {
+  final Map<String, int> c;
+  const DaFare(this.c, {super.key});
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    final voci = [
+      (c['messaggi'] ?? 0, 'mail', c['messaggi'] == 1 ? 'nuovo messaggio' : 'nuovi messaggi', 'messaggi'),
+      (c['prenotazioni'] ?? 0, 'calendar', c['prenotazioni'] == 1 ? 'prenotazione da confermare' : 'prenotazioni da confermare', 'prenotazioni'),
+      (c['recensioni'] ?? 0, 'star', c['recensioni'] == 1 ? 'recensione da approvare' : 'recensioni da approvare', 'recensioni'),
+      (c['posta'] ?? 0, 'send', 'email da inviare', 'posta'),
+    ].where((v) => v.$1 > 0).toList();
+    if (voci.isEmpty) return const SizedBox.shrink();
+    return Container(
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(color: const Color(0xFFFFFAF2), border: Border.all(color: mix(VTheme.warn, .35, Colors.white)), borderRadius: t.r),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        const BoxTitle('Da fare', icon: 'check', size: 17.6),
+        for (final (n, ic, l, h) in voci)
+          Hover(
+            onTap: () => openLink(context, '#/admin/$h'),
+            builder: (_, hv) => Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              decoration: BoxDecoration(color: hv ? Colors.white : null, borderRadius: BorderRadius.circular(8)),
+              child: Row(children: [
+                VIcon(ic, color: VTheme.warn),
+                const SizedBox(width: 8),
+                Text('$n', style: t.text(weight: FontWeight.w700)),
+                const SizedBox(width: 4),
+                Expanded(child: Text(l, style: t.text())),
+              ]),
+            ),
+          ),
+      ]),
+    );
   }
 }

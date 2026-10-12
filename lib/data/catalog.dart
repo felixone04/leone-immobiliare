@@ -2,7 +2,11 @@
 library;
 
 import '../core/util.dart';
+import 'abbinamento.dart';
 import 'preset.dart';
+
+/// Un annuncio resta "Nuovo" per questi giorni da quando è disponibile.
+const kGiorniNuovo = 14;
 
 class Catalog {
   final CatalogSchema s;
@@ -38,22 +42,25 @@ class Catalog {
     final cd = s.card;
     final v = item[cd.prezzo];
     if (isEmptyValue(v)) return 'Prezzo su richiesta';
-    final n = numOrNull(v) ?? 0;
-    if (n == 0 && cd.gratis != null) return cd.gratis!;
-    return (cd.prefisso?.call(item) ?? '') + fmtPrice(n) + (cd.suffisso?.call(item) ?? '');
+    return fmtPrice(numOrNull(v) ?? 0) + (cd.suffisso?.call(item) ?? '');
   }
 
-  /// Prezzo pieno barrato (offerte), se presente.
+  /// Prezzo precedente barrato, se il prezzo è stato ribassato e l'immobile è ancora disponibile.
   String? prezzoPieno(Json item) {
-    final k = s.card.prezzoPieno;
-    if (k == null) return null;
-    final pieno = numOrNull(item[k]), v = numOrNull(item[s.card.prezzo]);
-    return pieno != null && v != null && pieno > v ? fmtPrice(pieno) : null;
+    final pieno = numOrNull(item['prezzoPrecedente']), v = numOrNull(item[s.card.prezzo]);
+    return pieno != null && v != null && pieno > v && immobileDisponibile(item) ? fmtPrice(pieno) : null;
   }
 
-  String etichetta(Json item) {
-    final k = s.card.etichetta;
-    return k != null ? str(item[k]) : '';
+  /// Etichette dell'annuncio: Esclusiva (scelta dall'agenzia), Nuovo (disponibile da meno di
+  /// [kGiorniNuovo] giorni) e Prezzo ribassato (automatica quando il prezzo scende).
+  List<String> etichette(Json item) {
+    if (!immobileDisponibile(item)) return const [];
+    final dal = intOf(item['disponibileDal'], intOf(item['creato']));
+    return [
+      if (boolOf(item['esclusiva'])) 'Esclusiva',
+      if (dal > 0 && DateTime.now().millisecondsSinceEpoch - dal < kGiorniNuovo * 86400000) 'Nuovo',
+      if (prezzoPieno(item) != null) 'Prezzo ribassato',
+    ];
   }
 
   String luogo(Json item) => s.card.luogo.map((k) => str(item[k])).where((x) => x.isNotEmpty).join(', ');

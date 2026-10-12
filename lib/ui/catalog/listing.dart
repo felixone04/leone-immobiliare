@@ -12,6 +12,7 @@ import '../../core/util.dart';
 import '../../data/catalog.dart';
 import '../../data/preset.dart';
 import '../../state/app_state.dart';
+import '../clienti/account.dart';
 import '../inputs.dart';
 import '../kit.dart';
 import '../map/vmap.dart';
@@ -228,9 +229,8 @@ class _FiltersPanelState extends State<FiltersPanel> {
     return Container(
       decoration: BoxDecoration(
         color: t.surface,
-        border: Border.all(color: t.moderno ? Colors.transparent : t.line),
+        border: Border.all(color: t.line),
         borderRadius: t.r,
-        boxShadow: t.moderno ? t.shadow : null,
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         head,
@@ -429,37 +429,7 @@ class _Results extends StatelessWidget {
         note: senza > 0 ? '$senza risultati senza posizione non sono mostrati sulla mappa' : null,
       );
     } else {
-      final vis = list.take(ls.pag).toList();
-      final gk = sch.card.raggruppa;
-      final raggruppa = gk != null && ord.where((o) => o.id == ls.sort).firstOrNull?.campo == gk;
-      if (raggruppa) {
-        final gruppi = <String, List<Json>>{};
-        for (final i in vis) {
-          (gruppi[str(i[gk]).isEmpty ? 'Altro' : str(i[gk])] ??= []).add(i);
-        }
-        content = Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-          for (final e in gruppi.entries) ...[
-            Container(
-              margin: const EdgeInsets.only(bottom: 14),
-              padding: const EdgeInsets.only(bottom: 10),
-              decoration: BoxDecoration(border: Border(bottom: BorderSide(color: t.primary, width: 2))),
-              child: Row(children: [
-                Text(e.key, style: t.title(size: 19.2)),
-                const SizedBox(width: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
-                  decoration: BoxDecoration(color: t.primarySoft, borderRadius: BorderRadius.circular(999)),
-                  child: Text('${e.value.length}', style: t.text(size: 12.5, weight: FontWeight.w700, color: t.primary)),
-                ),
-              ]),
-            ),
-            CardsGrid(e.value, minWidth: 380),
-            const SizedBox(height: 32),
-          ],
-        ]);
-      } else {
-        content = CardsGrid(vis, minWidth: 270);
-      }
+      content = CardsGrid(list.take(ls.pag).toList(), minWidth: 270);
       if (n > ls.pag) {
         content = Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
           content,
@@ -484,7 +454,7 @@ class _Results extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: h ? mix(t.primary, .16, Colors.white) : t.primarySoft,
                     border: Border.all(color: t.primary.withValues(alpha: .2)),
-                    borderRadius: BorderRadius.circular(t.minimal ? 0 : 999),
+                    borderRadius: BorderRadius.circular(999),
                   ),
                   child: Row(mainAxisSize: MainAxisSize.min, children: [
                     Text(c.t, style: t.text(size: 13.6, weight: FontWeight.w600, color: t.primary, height: 1.3)),
@@ -497,7 +467,40 @@ class _Results extends StatelessWidget {
           ]),
         ),
       content,
+      const SizedBox(height: 32),
+      _SalvaRicerca(criteri: criteriDaFiltri(ls.st)),
     ]);
   }
 }
 
+
+/// Invito a salvare la ricerca: il cliente viene avvisato quando arriva un immobile adatto.
+class _SalvaRicerca extends StatelessWidget {
+  final Json criteri;
+  const _SalvaRicerca({required this.criteri});
+  @override
+  Widget build(BuildContext context) {
+    final t = context.t;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      decoration: BoxDecoration(color: t.primarySoft, border: Border.all(color: t.primary.withValues(alpha: .25)), borderRadius: t.r),
+      child: Wrap(spacing: 20, runSpacing: 14, alignment: WrapAlignment.spaceBetween, crossAxisAlignment: WrapCrossAlignment.center, children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 560),
+          child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Padding(padding: const EdgeInsets.only(top: 2), child: VIcon('bell', size: 22, color: t.primary)),
+            const SizedBox(width: 12),
+            Flexible(
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('Non trovi la casa giusta?', style: t.title(size: 17.6)),
+                const SizedBox(height: 2),
+                Text('Salva questa ricerca: ti scriviamo appena arriva un immobile adatto a te.', style: t.text(size: 14.4, color: t.ink2)),
+              ]),
+            ),
+          ]),
+        ),
+        VButton('Salva questa ricerca', icon: 'bookmark', kind: BtnKind.primary, onPressed: () => apriRicerca(context, criteri: criteri)),
+      ]),
+    );
+  }
+}

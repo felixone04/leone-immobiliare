@@ -54,8 +54,8 @@ class TwoCols extends StatelessWidget {
 /// Modulo "richiedi informazioni": la richiesta finisce nei Messaggi dell'area riservata.
 class ContactForm extends StatefulWidget {
   final String oggetto, messaggio;
-  final String pagina;
-  const ContactForm({super.key, required this.oggetto, this.messaggio = '', this.pagina = ''});
+  final String pagina, immobile;
+  const ContactForm({super.key, required this.oggetto, this.messaggio = '', this.pagina = '', this.immobile = ''});
   @override
   State<ContactForm> createState() => _ContactFormState();
 }
@@ -84,7 +84,7 @@ class _ContactFormState extends State<ContactForm> {
     setState(() => _err = null);
     try {
       await App.read(context).repo.richiestaCrea({
-        'nome': _nome.text, 'email': _email.text, 'telefono': _tel.text, 'messaggio': _msg.text, 'oggetto': widget.oggetto, 'pagina': widget.pagina,
+        'nome': _nome.text, 'email': _email.text, 'telefono': _tel.text, 'messaggio': _msg.text, 'oggetto': widget.oggetto, 'pagina': widget.pagina, 'immobile': widget.immobile,
       });
       setState(() {
         _nomeInviato = _nome.text.trim().split(' ').first;
@@ -114,68 +114,6 @@ class _ContactFormState extends State<ContactForm> {
       FormError(_err),
       const SizedBox(height: 8),
       VButton('Invia richiesta', icon: 'mail', kind: BtnKind.primary, block: true, onAsync: _invia),
-    ]);
-  }
-}
-
-/// Modulo con nome, telefono, email e consenso (tessera, pacchetto, coupon).
-class ContattoForm extends StatefulWidget {
-  final String bottone, icona, scopo;
-  final bool telObbligatorio, emailObbligatoria;
-  final Future<void> Function(Json dati) onSubmit;
-  const ContattoForm({super.key, required this.bottone, required this.icona, required this.scopo, required this.onSubmit, this.telObbligatorio = true, this.emailObbligatoria = false});
-  @override
-  State<ContattoForm> createState() => _ContattoFormState();
-}
-
-class _ContattoFormState extends State<ContattoForm> {
-  final _nome = TextEditingController(), _email = TextEditingController(), _tel = TextEditingController();
-  var _privacy = false, _tentato = false;
-  String? _err;
-
-  @override
-  void dispose() {
-    for (final c in [_nome, _email, _tel]) {
-      c.dispose();
-    }
-    super.dispose();
-  }
-
-  Future<void> _invia() async {
-    setState(() => _tentato = true);
-    final ok = _nome.text.trim().isNotEmpty &&
-        (!widget.telObbligatorio || _tel.text.trim().isNotEmpty) &&
-        (!widget.emailObbligatoria || _email.text.trim().isNotEmpty) &&
-        _privacy;
-    if (!ok) {
-      setState(() => _err = "Compila i campi richiesti e accetta l'informativa.");
-      return;
-    }
-    setState(() => _err = null);
-    try {
-      await widget.onSubmit({'nome': _nome.text, 'telefono': _tel.text, 'email': _email.text});
-    } on AppError catch (e) {
-      if (mounted) setState(() => _err = e.message);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final inv = _tentato;
-    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      FieldLabel('Nome e cognome', child: VInput(controller: _nome, autofill: const [AutofillHints.name], invalid: inv && _nome.text.trim().isEmpty)),
-      const SizedBox(height: 12),
-      TwoCols(
-        FieldLabel('Telefono', child: VInput(controller: _tel, keyboard: TextInputType.phone, invalid: inv && widget.telObbligatorio && _tel.text.trim().isEmpty)),
-        FieldLabel(widget.emailObbligatoria ? 'Email' : 'Email (facoltativa)',
-            child: VInput(controller: _email, keyboard: TextInputType.emailAddress, invalid: inv && widget.emailObbligatoria && _email.text.trim().isEmpty)),
-      ),
-      const SizedBox(height: 12),
-      PrivacyCheck(value: _privacy, onChanged: (v) => setState(() => _privacy = v), scopo: widget.scopo, invalid: inv && !_privacy),
-      const SizedBox(height: 8),
-      FormError(_err),
-      const SizedBox(height: 8),
-      VButton(widget.bottone, icon: widget.icona, kind: BtnKind.primary, block: true, onAsync: _invia),
     ]);
   }
 }
